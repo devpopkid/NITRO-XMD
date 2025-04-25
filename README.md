@@ -1,8 +1,9 @@
-# XFORCE-V1
-# BY POPKID KE
-0111385747✅🪆
 <p align="center">
   <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.demolab.com/?lines=POPKID+XMD+BOT;DEVELOPED+BY+POPKID&font=Arial%20Black&fontSize=1000&pause=1000&width=1000&height=1000&color=0080FF&vCenter=true&multiline=true&center=true" alt="Typing SVG" />
+    <img src="https://readme-typing-svg.demolab.com/?lines=POPKID+XMD+BOT;DEVELOPED+BY+POPKID&font=Impact&fontSize=64&pause=1000&width=900&height=150&color=FFD700&vCenter=true&multiline=true&center=true" alt="Typing SVG" />
   </a>
+</p>
+
+<p align="center">
+  <img src="clock.png" alt="Analog Clock" width="150">
 </p>
