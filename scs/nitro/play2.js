@@ -81,3 +81,6 @@ const play = async (m, gss) => {
         reply("An error occurred while processing your request. Please try again later.");
     }
 }
+};
+
+export default play2;
