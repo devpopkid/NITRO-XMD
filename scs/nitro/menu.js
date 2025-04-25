@@ -7,9 +7,11 @@ const text = m.body.slice(prefix.length + cmd.length).trim();
 
   if (cmd === "menu") {
     const start = new Date().getTime();
-    await m.React('💖');
+    await m.React('⏳');
     const end = new Date().getTime();
     const responseTime = (end - start) / 1000;
+
+
 
     const text = `╭─────═━┈┈━═──━┈⊷
 ┇ ʙᴏᴛ ɴᴀᴍᴇ: *𝗣𝗢𝗣𝗞𝗜𝗗-𝗠𝗗*
@@ -131,34 +133,8 @@ ${prefix}𝙻𝚢𝚛𝚒𝚌𝚜
 ▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄
 ▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄
 `;
-
-    await m.React('✅'); // React with a success icon
-
-    sock.sendMessage(
-      m.from,
-      {
-        text: aliveMessage,
-        contextInfo: {
-          isForwarded: false,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363290715861418@newsletter',
-            newsletterName: "𝗣𝗢𝗣𝗞𝗜𝗗 𝗧𝗘𝗖𝗛 𝗕𝗢𝗧",
-            serverMessageId: -1,
-          },
-          forwardingScore: 999, // Score to indicate it has been forwarded
-          externalAdReply: {
-            title: "😇𝗣𝗢𝗣𝗞𝗜𝗗 𝗧𝗘𝗖𝗛 𝗕𝗢𝗧😇",
-            body: "XTECH  BOT MENU",
-            thumbnailUrl: 'https://files.catbox.moe/w5xf3f.jpg', // Add thumbnail URL if required
-            sourceUrl: 'https://files.catbox.moe/tdhhl5.mp3', // Add source URL if necessary
-            mediaType: 1,
-            renderLargerThumbnail: true,
-          },
-        },
-      },
-      { quoted: m }
-    );
+    sock.sendMessage(m.from, { text }, { quoted: m });
   }
-};
+}
 
-export default alive;
+export default menu;
