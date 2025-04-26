@@ -93,7 +93,6 @@ async function start() {
         });
 
         Matrix.ev.on('connection.update', async (update) => {
-            // ... (rest of your connection update logic) ...
             const { connection, lastDisconnect } = update;
             if (connection === 'close') {
                 if (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) {
@@ -102,7 +101,7 @@ async function start() {
             } else if (connection === 'open') {
                 if (initialConnection) {
                     console.log(chalk.green("✔️  ᴘᴏᴘᴋɪᴅ ᴍᴅ ɪs ɴᴏᴡ ᴏɴʟɪɴᴇ ᴀɴᴅ ᴘᴏᴡᴇʀᴇᴅ ᴜᴘ"));
-                    // ... (rest of your initial connection message) ...
+
                     const image = { url: "https://files.catbox.moe/nk71o3.jpg" };
                     const caption = `╭━━ *『 ᴘᴏᴘᴋɪᴅ xᴍᴅ ᴄᴏɴɴᴇᴄᴛᴇᴅ 』*
 ┃
