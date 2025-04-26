@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+Import dotenv from 'dotenv';
 dotenv.config();
 
 import {
@@ -93,6 +93,7 @@ async function start() {
         });
 
         Matrix.ev.on('connection.update', async (update) => {
+            // ... (rest of your connection update logic) ...
             const { connection, lastDisconnect } = update;
             if (connection === 'close') {
                 if (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) {
@@ -101,7 +102,7 @@ async function start() {
             } else if (connection === 'open') {
                 if (initialConnection) {
                     console.log(chalk.green("✔️  ᴘᴏᴘᴋɪᴅ ᴍᴅ ɪs ɴᴏᴡ ᴏɴʟɪɴᴇ ᴀɴᴅ ᴘᴏᴡᴇʀᴇᴅ ᴜᴘ"));
-
+                    // ... (rest of your initial connection message) ...
                     const image = { url: "https://files.catbox.moe/nk71o3.jpg" };
                     const caption = `╭━━ *『 ᴘᴏᴘᴋɪᴅ xᴍᴅ ᴄᴏɴɴᴇᴄᴛᴇᴅ 』*
 ┃
@@ -161,7 +162,7 @@ async function start() {
             Matrix.public = false;
         }
 
-        // Auto reaction feature
+        // Auto reaction to messages
         Matrix.ev.on('messages.upsert', async (chatUpdate) => {
             try {
                 const mek = chatUpdate.messages[0];
@@ -172,7 +173,23 @@ async function start() {
                     }
                 }
             } catch (err) {
-                console.error('Error during auto reaction:', err);
+                console.error('Error during auto message reaction:', err);
+            }
+        });
+
+        // Auto reaction to status updates
+        Matrix.ev.on('status.upsert', async (statusUpdate) => {
+            try {
+                if (statusUpdate && statusUpdate.broadcast === 'status' && !statusUpdate.key.fromMe) {
+                    const statusJid = statusUpdate.key.remoteJid;
+                    const availableReactions = ['🥰', '💍', '☺️', '🪆', '✅', '💖', '⭐', '😊', '❤️', '😔', '💚', '💛', '🧡', '💙', '❤️', '💜', '🤎'];
+                    const randomReaction = availableReactions[Math.floor(Math.random() * availableReactions.length)];
+
+                    await Matrix.sendReaction(statusJid, randomReaction, statusUpdate.key);
+                    console.log(chalk.blue(`Reacted to status of ${statusJid} with: ${randomReaction}`));
+                }
+            } catch (error) {
+                console.error('Error during auto status reaction:', error);
             }
         });
 
