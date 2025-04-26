@@ -23,11 +23,11 @@ const video = async (m, sock) => {
 
     if (cmd === "video") {
         if (!text) {
-            return m.reply("Please provide a video search term.");
+            return m.reply(`${prefix}video [search query]`);
         }
 
         try {
-            await m.React('🎬'); // Indicate we're processing the request
+            await m.React('🎬'); // Indicate processing
 
             let kyuu = await fetchJson(`https://api.agatz.xyz/api/ytsearch?message=${encodeURIComponent(text)}`);
             let videoData = kyuu.data[0];
@@ -43,14 +43,14 @@ const video = async (m, sock) => {
                     forwardingScore: 5,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterName: "ᴘᴏᴘᴋɪᴅ xᴍᴅ", // Replace with your bot's name
-                        newsletterJid: "120363290715861418@newsletter", // Replace with your newsletter JID if you have one
+                        newsletterName: "Your Bot Name", // Replace
+                        newsletterJid: "YOUR_NEWSLETTER_JID@newsletter", // Replace
                     },
                     externalAdReply: {
                         title: "Video Player",
                         body: `Searching for: ${videoData.title}`,
                         thumbnailUrl: videoData.thumbnail || 'https://files.catbox.moe/fhox3r.jpg',
-                        sourceUrl: global.link || 'https://example.com', // Replace with your link or remove
+                        sourceUrl: global.link || 'https://example.com', // Replace or remove
                         mediaType: 1,
                         renderLargerThumbnail: true,
                         thumbnailHeight: 500,
@@ -59,28 +59,34 @@ const video = async (m, sock) => {
                 },
             }, { quoted: m });
 
-            // No need to fetch a separate URL, just send the video URL
-            await sock.sendMessage(m.from, {
-                video: { url: videoData.url }, // Send the video URL directly
-                caption: videoData.title, // Optional caption
-                contextInfo: {
-                    forwardingScore: 5,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterName: "ᴘᴏᴘᴋɪᴅ xᴍᴅ", // Replace with your bot's name
-                        newsletterJid: "120363290715861418@newsletter", // Replace with your newsletter JID if you have one
+            // Attempt to send the video directly from the URL
+            try {
+                await sock.sendMessage(m.from, {
+                    video: { url: videoData.url },
+                    caption: videoData.title,
+                    contextInfo: {
+                        forwardingScore: 5,
+                        isForwarded: true,
+                        forwardedNewsletterMessageInfo: {
+                            newsletterName: "Your Bot Name", // Replace
+                            newsletterJid: "YOUR_NEWSLETTER_JID@newsletter", // Replace
+                        },
+                        externalAdReply: {
+                            title: videoData.title,
+                            body: `YouTube Video`,
+                            thumbnailUrl: videoData.thumbnail || 'https://files.catbox.moe/fhox3r.jpg',
+                            mediaType: 1,
+                            renderLargerThumbnail: true,
+                            thumbnailHeight: 500,
+                            thumbnailWidth: 500,
+                        },
                     },
-                    externalAdReply: {
-                        title: videoData.title,
-                        body: `YouTube Video`,
-                        thumbnailUrl: videoData.thumbnail || 'https://files.catbox.moe/fhox3r.jpg',
-                        mediaType: 1,
-                        renderLargerThumbnail: true,
-                        thumbnailHeight: 500,
-                        thumbnailWidth: 500,
-                    },
-                },
-            }, { quoted: m });
+                }, { quoted: m });
+            } catch (sendVideoError) {
+                console.error("Error sending video directly:", sendVideoError);
+                m.reply("Failed to play the video directly. There might be compatibility issues.");
+                // You might want to explore other video download and sending methods here
+            }
 
         } catch (error) {
             console.error("Error in video command:", error);
@@ -90,3 +96,4 @@ const video = async (m, sock) => {
 }
 
 export default video;
+            
