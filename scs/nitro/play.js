@@ -33,7 +33,7 @@ const play = async (m, sock) => {
             let songData = kyuu.data[0];
 
             if (!songData) {
-                return m.reply("Song not found. Please try another search.");
+                return m.reply("Song not found. Please try another search🧋.");
             }
 
             // Send initial "Playing" message with context info and large thumbnail
@@ -50,7 +50,7 @@ const play = async (m, sock) => {
                         title: "Music Player",
                         body: `Searching for: ${songData.title}`,
                         thumbnailUrl: songData.thumbnail || 'https://files.catbox.moe/fhox3r.jpg',
-                        sourceUrl: global.link || 'https://example.com', // Replace with your link or remove
+                        sourceUrl: global.link || 'https://whatsapp.com/channel/0029VadQrNI8KMqo79BiHr3l', // Replace with your link or remove
                         mediaType: 1,
                         renderLargerThumbnail: true,
                         thumbnailHeight: 500,
