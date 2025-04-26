@@ -23,7 +23,7 @@ const play = async (m, sock) => {
 
     if (cmd === "play") {
         if (!text) {
-            return m.reply("Please provide a song name to play.");
+            return m.reply("Please provide a song name to play🧋.");
         }
 
         try {
@@ -43,7 +43,7 @@ const play = async (m, sock) => {
                     forwardingScore: 5,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterName: "Your Bot Name", // Replace with your bot's name
+                        newsletterName: "ᴘᴏᴘᴋɪᴅ xᴍᴅ", // Replace with your bot's name
                         newsletterJid: "120363290715861418@newsletter", // Replace with your newsletter JID if you have one
                     },
                     externalAdReply: {
@@ -76,7 +76,7 @@ const play = async (m, sock) => {
                     forwardingScore: 5,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterName: "Your Bot Name", // Replace with your bot's name
+                        newsletterName: "ᴘᴏᴘᴋɪᴅ xᴍᴅ", // Replace with your bot's name
                         newsletterJid: "120363290715861418@newsletter", // Replace with your newsletter JID if you have one
                     },
                     externalAdReply: {
