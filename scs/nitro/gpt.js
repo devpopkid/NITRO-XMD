@@ -32,7 +32,7 @@ const gpt = async (m, sock) => {
       if (data && data.result) {
         const end = new Date().getTime();
         const responseTime = (end - start) / 1000;
-        const replyText = `${data.result}\n\n*Response Time: ${responseTime.toFixed(2)} s*\n\nPowered by xh_clinton`;
+        const replyText = `${data.result}\n\n*Response Time: ${responseTime.toFixed(2)} s*\n\nPowered by popkid xmd`;
         await sock.sendMessage(m.from, { text: replyText }, { quoted: m });
       } else {
         console.log("Invalid GPT API response structure");
