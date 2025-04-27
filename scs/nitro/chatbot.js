@@ -1,52 +1,39 @@
 import config from '../../config.cjs';
 
-const autotypingCommand = async (m, Matrix) => {
-  const botNumber = await Matrix.decodeJid(Matrix.user.id);
-  const isCreator = [botNumber, config.OWNER_NUMBER + '@s.whatsapp.net'].includes(m.sender);
+let autoReplyStatus = new Map(); // For per-chat ON/OFF
+
+const chatbot = async (m, sock) => {
   const prefix = config.PREFIX;
-  const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
-  const text = m.body.slice(prefix.length + cmd.length).trim();
+  const isCmd = m.body && m.body.startsWith(prefix);
+  const cmd = isCmd ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
+  const args = isCmd ? m.body.slice(prefix.length + cmd.length).trim() : '';
 
-  // List of all commands that should toggle the chatbot state
-  const validCommands = ['chatbot', 'lydea', 'lydia', 'answer', 'automreply'];
+  const chatId = m.key.remoteJid;
 
-  // Check if the command is in the list of valid commands
-  if (validCommands.includes(cmd)) {
-    if (!isCreator) return m.reply("*ᴏᴡɴᴇʀ ᴄᴏᴍᴍᴀɴᴅ ᴍᴀᴅᴀғᴀᴋᴇʀ*");
-
-    let responseMessage;
-
-    // Toggle chatbot state based on the passed argument ('on' or 'off')
-    if (text === 'on') {
-      config.CHAT_BOT = true;
-      responseMessage = `${cmd.charAt(0).toUpperCase() + cmd.slice(1)}: Chatbot has been enabled.`;
-    } else if (text === 'off') {
-      config.CHAT_BOT = false;
-      responseMessage = `${cmd.charAt(0).toUpperCase() + cmd.slice(1)}: Chatbot has been disabled.`;
+  if (cmd === 'bot') {
+    if (args.toLowerCase() === 'on') {
+      autoReplyStatus.set(chatId, true);
+      await sock.sendMessage(chatId, { text: '*✅ Auto-Reply is now ON!*' }, { quoted: m });
+    } else if (args.toLowerCase() === 'off') {
+      autoReplyStatus.set(chatId, false);
+      await sock.sendMessage(chatId, { text: '*❌ Auto-Reply is now OFF!*' }, { quoted: m });
     } else {
-      responseMessage = "Usage:\n- `command on`: Enable Chatbot\n- `command off`: Disable Chatbot";
+      await sock.sendMessage(chatId, { text: '*⚙️ Usage: .bot on / .bot off*' }, { quoted: m });
     }
-
-    try {
-      await Matrix.sendMessage(m.from, { text: responseMessage }, { quoted: m });
-    } catch (error) {
-      console.error("Error processing your request:", error);
-      await Matrix.sendMessage(m.from, { text: 'Error processing your request.' }, { quoted: m });
-    }
+    return; // Exit after handling bot command
   }
-};
 
-export default autotypingCommand;
+  const isAutoReplyOn = autoReplyStatus.get(chatId) || false;
 
+  if (isAutoReplyOn && !isCmd) {
+    const start = Date.now();
+    await sock.sendMessage(chatId, { react: { text: '🤖', key: m.key } }); // React to the message
+    const end = Date.now();
+    const responseTime = (end - start) / 1000;
 
-/*
+    const replyText = `*Hello there! ▰▰▰▰▰▰▱▱▱▱ 70${responseTime.toFixed(2)}0 ms*`;
+    await sock.sendMessage(chatId, { text: replyText }, { quoted: m });
+  }
+}
 
-1. chatbot on
-2. chatbot off
-3. lydea
-4. lydia
-5. bot
-6. automreply on
-7. automreply off
-
-                               */
+export default chatbot;
