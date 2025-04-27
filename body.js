@@ -7,6 +7,7 @@ import {
     fetchLatestBaileysVersion,
     DisconnectReason,
     useMultiFileAuthState,
+    delay,
 } from '@whiskeysockets/baileys';
 
 import { Handler, Callupdate, GroupUpdate } from './scs/nitrox/index.js';
@@ -24,7 +25,6 @@ import pkg from './lib/autoreact.cjs';
 import { fileURLToPath } from 'url';
 
 const { emojis: allEmojis, doReact } = pkg;
-const allowedEmojis = ['❤️', '💜', '💙', '💛', '💚', '🧡', '✅', '🤎'];
 
 const sessionName = "session";
 const app = express();
@@ -168,16 +168,38 @@ async function start() {
                 const mek = chatUpdate.messages[0];
                 if (!mek.key.fromMe && config.AUTO_REACT) {
                     if (mek.message) {
-                        // Filter emojis to use only the allowed ones
-                        const filteredEmojis = allEmojis.filter(emoji => allowedEmojis.includes(emoji));
-                        if (filteredEmojis.length > 0) {
-                            const randomEmoji = filteredEmojis[Math.floor(Math.random() * filteredEmojis.length)];
+                        const customEmojis = ['👍', '😂', '👏', '🔥', '💯', '🎉', '🤩', '🤔'];
+                        if (customEmojis.length > 0) {
+                            const randomEmoji = customEmojis[Math.floor(Math.random() * customEmojis.length)];
                             await doReact(randomEmoji, mek, Matrix);
                         }
                     }
                 }
             } catch (err) {
                 console.error('Error during auto reaction:', err);
+            }
+        });
+
+        // Auto view status
+        Matrix.ev.on('presence.update', async (update) => {
+            if (update.presences && !update.id.endsWith('@g.us') && update.id !== Matrix.user.id) {
+                const status = Object.values(update.presences)[0];
+                if (status.lastSeen) {
+                    try {
+                        await Matrix.readMessages([
+                            {
+                                remoteJid: update.id,
+                                id: status.lastSeen,
+                                participant: undefined,
+                            },
+                        ]);
+                        // Optional: Add a log message if you want to track viewed statuses
+                        // console.log(chalk.yellow(`👁️ Viewed status of ${update.id}`));
+                        await delay(1000); // Optional: Add a small delay to avoid rate limiting
+                    } catch (error) {
+                        console.error(`Error viewing status of ${update.id}:`, error);
+                    }
+                }
             }
         });
 
