@@ -24,32 +24,44 @@ const antidelete = async (m, sock) => {
   // If Anti-Delete is enabled, listen for deleted messages
   if (antiDeleteEnabled) {
     sock.ev.on('messages.delete', async (deleted) => {
-      const { key, from, participant, remoteJid } = deleted[0];
+      if (!deleted || deleted.length === 0) return; // Avoid errors if deleted array is empty
+      const { key, participant, remoteJid } = deleted[0];
 
-      // Check if the message is from a group (not a broadcast or status message)
-      if (remoteJid && remoteJid !== 'status@broadcast') {
-        // Retrieve the original deleted message using the key
-        const deletedMessage = await sock.loadMessage(from, key.id);
-        
-        if (deletedMessage) {
-          // Prepare the content of the deleted message
-          let messageContent = '';
-          
-          if (deletedMessage.message.conversation) {
-            messageContent = deletedMessage.message.conversation; // If it's a text message
-          } else if (deletedMessage.message.imageMessage) {
-            messageContent = '[📸 Image Message]'; // If it was an image
-          } else if (deletedMessage.message.videoMessage) {
-            messageContent = '[🎥 Video Message]'; // If it was a video
-          } else if (deletedMessage.message.audioMessage) {
-            messageContent = '[🎧 Audio Message]'; // If it was an audio
-          } else {
-            messageContent = '[❗ Unsupported Message Type]';
+      // Check if the message is from a group (not a broadcast or status message) and not our own message
+      if (remoteJid && remoteJid !== 'status@broadcast' && key.fromMe === false) {
+        try {
+          const deletedMessage = await sock.loadMessage(remoteJid, key.id);
+
+          if (deletedMessage && deletedMessage.message) {
+            const originalMessage = deletedMessage.message;
+            let resendContent = null;
+            let messageType = Object.keys(originalMessage)[0]; // Get the type of the message
+
+            if (messageType === 'conversation') {
+              resendContent = { text: originalMessage.conversation };
+            } else if (messageType === 'imageMessage') {
+              resendContent = { image: await sock.downloadMediaMessage(originalMessage.imageMessage), caption: originalMessage.imageMessage.caption || '' };
+            } else if (messageType === 'videoMessage') {
+              resendContent = { video: await sock.downloadMediaMessage(originalMessage.videoMessage), caption: originalMessage.videoMessage.caption || '', gifPlayback: originalMessage.videoMessage.gifPlayback || false };
+            } else if (messageType === 'audioMessage') {
+              resendContent = { audio: await sock.downloadMediaMessage(originalMessage.audioMessage), mimetype: originalMessage.audioMessage.mimetype };
+            } else if (messageType === 'stickerMessage') {
+              resendContent = { sticker: await sock.downloadMediaMessage(originalMessage.stickerMessage) };
+            } else if (messageType === 'documentMessage') {
+              resendContent = { document: await sock.downloadMediaMessage(originalMessage.documentMessage), mimetype: originalMessage.documentMessage.mimetype, fileName: originalMessage.documentMessage.fileName };
+            } else if (messageType === 'extendedTextMessage' && originalMessage.extendedTextMessage.text) {
+              resendContent = { text: originalMessage.extendedTextMessage.text };
+            }
+
+            if (resendContent && participant) {
+              await sock.sendMessage(participant, { text: `⚠️ **DELETED MESSAGE FROM:** ${deletedMessage.pushName || 'Unknown'}\n\n` });
+              await sock.sendMessage(participant, resendContent);
+            }
           }
-
-          // Send a direct message to the user who deleted the message
+        } catch (error) {
+          console.error("Error processing deleted message:", error);
           if (participant) {
-            await sock.sendMessage(participant, { text: `⚠️ Your deleted message: "${messageContent}"` });
+            await sock.sendMessage(participant, { text: "⚠️ Failed to retrieve the deleted message." });
           }
         }
       }
