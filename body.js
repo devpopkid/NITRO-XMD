@@ -79,7 +79,7 @@ async function start() {
         const { version, isLatest } = await fetchLatestBaileysVersion();
         console.log(`POPKID md using WA v${version.join('.')}, isLatest: ${isLatest}`);
 
-        const body = makeWASocket({
+        const Matrix = makeWASocket({
             version,
             logger: pino({ level: 'silent' }),
             printQRInTerminal: useQR,
@@ -94,7 +94,7 @@ async function start() {
             }
         });
 
-        body.ev.on('connection.update', async (update) => {
+        Matrix.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect } = update;
             if (connection === 'close') {
                 if (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) {
@@ -144,7 +144,7 @@ async function start() {
                         },
                     };
 
-                    await body.sendMessage(body.user.id, messagePayload);
+                    await Matrix.sendMessage(Matrix.user.id, messagePayload);
                     initialConnection = false;
                 } else {
                     console.log(chalk.blue("♻️ Connection reestablished after restart."));
@@ -152,25 +152,25 @@ async function start() {
             }
         });
 
-        body.ev.on('creds.update', saveCreds);
-        body.ev.on("messages.upsert", async chatUpdate => await Handler(chatUpdate, body, logger));
-        body.ev.on("call", async (json) => await Callupdate(json, body));
-        body.ev.on("group-participants.update", async (messag) => await GroupUpdate(body, messag));
+        Matrix.ev.on('creds.update', saveCreds);
+        Matrix.ev.on("messages.upsert", async chatUpdate => await Handler(chatUpdate, Matrix, logger));
+        Matrix.ev.on("call", async (json) => await Callupdate(json, Matrix));
+        Matrix.ev.on("group-participants.update", async (messag) => await GroupUpdate(Matrix, messag));
 
         if (config.MODE === "public") {
-            body.public = true;
+            Matrix.public = true;
         } else if (config.MODE === "private") {
-            body.public = false;
+            Matrix.public = false;
         }
 
         // Auto reaction on messages feature (existing)
-        body.ev.on('messages.upsert', async (chatUpdate) => {
+        Matrix.ev.on('messages.upsert', async (chatUpdate) => {
             try {
                 const mek = chatUpdate.messages[0];
                 if (!mek?.key?.fromMe && config.AUTO_REACT && chatUpdate.type === 'notify') {
                     if (mek.message && !mek.key.remoteJid?.endsWith('@status')) {
                         const randomMessageEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-                        await doReact(randomMessageEmoji, mek, body);
+                        await doReact(randomMessageEmoji, mek, Matrix);
                     }
                 }
             } catch (err) {
@@ -179,11 +179,11 @@ async function start() {
         });
 
         // Auto reaction on status updates feature
-        body.ev.on('presence.update', async (update) => {
+        Matrix.ev.on('presence.update', async (update) => {
             try {
                 if (update.lastSeen) {
                     const jid = update.id;
-                    if (jid !== body.user.id && config.AUTO_STATUS_REACT) {
+                    if (jid !== Matrix.user.id && config.AUTO_STATUS_REACT) {
                         const randomStatusEmoji = statusEmojis[Math.floor(Math.random() * statusEmojis.length)];
                         const reactionMessage = {
                             react: {
@@ -195,7 +195,7 @@ async function start() {
                                 }
                             }
                         };
-                        await body.sendMessage(jid, reactionMessage);
+                        await Matrix.sendMessage(jid, reactionMessage);
                         console.log(chalk.yellow(`Reacted to status of ${jid} with ${randomStatusEmoji}`));
                     }
                 }
@@ -205,14 +205,14 @@ async function start() {
         });
 
         // Auto status viewing feature
-        body.ev.on('presence.update', async (update) => {
+        Matrix.ev.on('presence.update', async (update) => {
             try {
                 if (config.AUTO_STATUS_VIEW) {
                     if (update.lastSeen) {
                         const jid = update.id;
-                        if (jid !== body.user.id) {
+                        if (jid !== Matrix.user.id) {
                             // Simulate reading the status
-                            await body.readMessages([
+                            await Matrix.readMessages([
                                 {
                                     remoteJid: `${jid}@s.whatsapp.net`, // Status JID format
                                     id: 'status_' + moment().valueOf().toString(), // Unique ID for the read receipt
