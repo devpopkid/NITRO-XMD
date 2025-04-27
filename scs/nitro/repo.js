@@ -7,7 +7,7 @@ const repo = async (m, sock) => {
   const text = m.body.slice(prefix.length + cmd.length).trim();
 
   if (cmd === "repo") {
-    await m.React('⏳');
+    await m.React('💎'); // Even fancier reaction!
     const repoUrl = 'https://github.com/Popkiddevs/POPKID-XTECH';
     const imageUrl = 'https://files.catbox.moe/kiy0hl.jpg'; // ❗ REPLACE WITH YOUR ACTUAL IMAGE URL
 
@@ -16,30 +16,36 @@ const repo = async (m, sock) => {
       const response = await fetch(apiUrl);
       const data = await response.json();
 
-      if (data && data.forks_count !== undefined) {
+      if (data && data.forks_count !== undefined && data.stargazers_count !== undefined) {
         const stylishMessage = {
           image: { url: imageUrl },
           caption: `
-╔═════ 🤖  ═════╗
-  ✨ *P O P K I D - X T E C H* ✨
-╚═══════════════════╝
+╔═════ 🌟 *P O P K I D - X T E C H* 🌟 ═════╗
+   « *A Glimpse into the XTECH Universe!* »
+╚═══════════════════════════════════╝
 
-🔗 **Repository:**
-   \`${repoUrl}\`
+╭─── 🔗 **R E P O S I T O R Y** 🔗 ───╮
+│   \`${repoUrl}\`                               │
+╰───────────────────────────────╯
 
- **Forks:**
-   \`${data.forks_count}\`
+╭─── 🍴 **F O R K S** 🍴 ───╮
+│   \`${data.forks_count}\`                               │
+╰───────────────────────────────╯
 
-💖 *ᴇxᴘʟᴏʀᴇ ᴛʜᴇ ᴘᴏᴡᴇʀ ᴏғ ᴘᴏᴘᴋɪᴅ xᴍᴅ!* 💖
+╭─── ⭐ **S T A R S** ⭐ ───╮
+│   \`${data.stargazers_count}\`                               │
+╰───────────────────────────────╯
+
+✨ *ᴇxᴘʟᴏʀᴇ ᴛʜᴇ ʙʀɪʟʟɪᴀɴᴄᴇ ᴏғ ᴘᴏᴘᴋɪᴅ xᴍᴅ!* ✨
           `.trim(),
         };
         sock.sendMessage(m.from, stylishMessage, { quoted: m });
       } else {
-        sock.sendMessage(m.from, { text: 'Hmm, unable to retrieve repository details. 🤔', quoted: m });
+        sock.sendMessage(m.from, { text: 'Hmm, unable to retrieve full repository details. 🤔', quoted: m });
       }
     } catch (error) {
       console.error("Error fetching repo info:", error);
-      sock.sendMessage(m.from, { text: '⚠️ An error occurred while fetching repository info. 😥', quoted: m });
+      sock.sendMessage(m.from, { text: '⚠️ Oops! Something went wrong while getting the repo info. 😥', quoted: m });
     } finally {
       await m.React('✅');
     }
