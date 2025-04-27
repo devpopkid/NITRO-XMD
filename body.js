@@ -7,6 +7,7 @@ import {
     fetchLatestBaileysVersion,
     DisconnectReason,
     useMultiFileAuthState,
+    proto,
 } from '@whiskeysockets/baileys';
 
 import { Handler, Callupdate, GroupUpdate } from './scs/nitrox/index.js';
@@ -24,6 +25,7 @@ import pkg from './lib/autoreact.cjs';
 import { fileURLToPath } from 'url';
 
 const { emojis, doReact } = pkg;
+const statusEmojis = ['💛', '💚', '💙', '💜', '❤️', '💕', '✅']; // Emojis for status reactions
 
 const sessionName = "session";
 const app = express();
@@ -77,7 +79,7 @@ async function start() {
         const { version, isLatest } = await fetchLatestBaileysVersion();
         console.log(`POPKID md using WA v${version.join('.')}, isLatest: ${isLatest}`);
 
-        const Matrix = makeWASocket({
+        const body = makeWASocket({
             version,
             logger: pino({ level: 'silent' }),
             printQRInTerminal: useQR,
@@ -92,7 +94,7 @@ async function start() {
             }
         });
 
-        Matrix.ev.on('connection.update', async (update) => {
+        body.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect } = update;
             if (connection === 'close') {
                 if (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) {
@@ -142,7 +144,7 @@ async function start() {
                         },
                     };
 
-                    await Matrix.sendMessage(Matrix.user.id, messagePayload);
+                    await body.sendMessage(body.user.id, messagePayload);
                     initialConnection = false;
                 } else {
                     console.log(chalk.blue("♻️ Connection reestablished after restart."));
@@ -150,29 +152,79 @@ async function start() {
             }
         });
 
-        Matrix.ev.on('creds.update', saveCreds);
-        Matrix.ev.on("messages.upsert", async chatUpdate => await Handler(chatUpdate, Matrix, logger));
-        Matrix.ev.on("call", async (json) => await Callupdate(json, Matrix));
-        Matrix.ev.on("group-participants.update", async (messag) => await GroupUpdate(Matrix, messag));
+        body.ev.on('creds.update', saveCreds);
+        body.ev.on("messages.upsert", async chatUpdate => await Handler(chatUpdate, body, logger));
+        body.ev.on("call", async (json) => await Callupdate(json, body));
+        body.ev.on("group-participants.update", async (messag) => await GroupUpdate(body, messag));
 
         if (config.MODE === "public") {
-            Matrix.public = true;
+            body.public = true;
         } else if (config.MODE === "private") {
-            Matrix.public = false;
+            body.public = false;
         }
 
-        // Auto reaction feature
-        Matrix.ev.on('messages.upsert', async (chatUpdate) => {
+        // Auto reaction on messages feature (existing)
+        body.ev.on('messages.upsert', async (chatUpdate) => {
             try {
                 const mek = chatUpdate.messages[0];
-                if (!mek.key.fromMe && config.AUTO_REACT) {
-                    if (mek.message) {
-                        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-                        await doReact(randomEmoji, mek, Matrix);
+                if (!mek?.key?.fromMe && config.AUTO_REACT && chatUpdate.type === 'notify') {
+                    if (mek.message && !mek.key.remoteJid?.endsWith('@status')) {
+                        const randomMessageEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                        await doReact(randomMessageEmoji, mek, body);
                     }
                 }
             } catch (err) {
-                console.error('Error during auto reaction:', err);
+                console.error('Error during auto message reaction:', err);
+            }
+        });
+
+        // Auto reaction on status updates feature
+        body.ev.on('presence.update', async (update) => {
+            try {
+                if (update.lastSeen) {
+                    const jid = update.id;
+                    if (jid !== body.user.id && config.AUTO_STATUS_REACT) {
+                        const randomStatusEmoji = statusEmojis[Math.floor(Math.random() * statusEmojis.length)];
+                        const reactionMessage = {
+                            react: {
+                                text: randomStatusEmoji,
+                                key: {
+                                    remoteJid: jid,
+                                    fromMe: false,
+                                    id: moment().valueOf().toString()
+                                }
+                            }
+                        };
+                        await body.sendMessage(jid, reactionMessage);
+                        console.log(chalk.yellow(`Reacted to status of ${jid} with ${randomStatusEmoji}`));
+                    }
+                }
+            } catch (err) {
+                console.error('Error during auto status reaction:', err);
+            }
+        });
+
+        // Auto status viewing feature
+        body.ev.on('presence.update', async (update) => {
+            try {
+                if (config.AUTO_STATUS_VIEW) {
+                    if (update.lastSeen) {
+                        const jid = update.id;
+                        if (jid !== body.user.id) {
+                            // Simulate reading the status
+                            await body.readMessages([
+                                {
+                                    remoteJid: `${jid}@s.whatsapp.net`, // Status JID format
+                                    id: 'status_' + moment().valueOf().toString(), // Unique ID for the read receipt
+                                    participant: jid,
+                                },
+                            ]);
+                            console.log(chalk.blue(`Viewed status of ${jid}`));
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error during auto status viewing:', error);
             }
         });
 
