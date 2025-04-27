@@ -12,7 +12,8 @@ const config = {
   BOT: process.env.BOT || "hello 👋",
   NEW_CMD: process.env.NEW_CMD || "ᴀᴅᴅᴠᴀʀ\n│ sᴜᴅᴏ\| popkid",
   CAPTION: process.env.CAPTION || "ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴘᴏᴘᴋɪᴅ ᴋᴇ",
-  REPO_IMAGE_URL: process.env.REPO_IMAGE_URL || 'Status Viewed by joel-Md',
+  REPO_IMAGE_URL: process.env.REPO_IMAGE_URL || 'https://files.catbox.moe/kiy0hl.jpg',
+  NEWSLETTER_CHANNEL_ID: process.env.NEWSLETTER_CHANNEL_ID || '120363290715861418@newsletter',
   // Auto features
   AUTO_STATUS_SEEN: process.env.AUTO_STATUS_SEEN !== undefined ? process.env.AUTO_STATUS_SEEN === 'true' : true,
   AUTO_BIO: process.env.AUTO_BIO !== undefined ? process.env.AUTO_BIO === 'true' : true,
