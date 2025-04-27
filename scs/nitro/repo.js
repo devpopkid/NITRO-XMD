@@ -7,7 +7,7 @@ const repo = async (m, sock) => {
   const text = m.body.slice(prefix.length + cmd.length).trim();
 
   if (cmd === "repo") {
-    await m.React('💎'); // Even fancier reaction!
+    await m.React('💖'); // Cute reaction!
     const repoUrl = 'https://github.com/Popkiddevs/POPKID-XTECH';
     const imageUrl = 'https://files.catbox.moe/kiy0hl.jpg'; // ❗ REPLACE WITH YOUR ACTUAL IMAGE URL
 
@@ -20,32 +20,29 @@ const repo = async (m, sock) => {
         const stylishMessage = {
           image: { url: imageUrl },
           caption: `
-╔═════ 🌟 *P O P K I D - X T E C H* 🌟 ═════╗
-   « *A Glimpse into the XTECH Universe!* »
-╚═══════════════════════════════════╝
-
-╭─── 🔗 **R E P O S I T O R Y** 🔗 ───╮
-│   \`${repoUrl}\`                               │
-╰───────────────────────────────╯
-
-╭─── 🍴 **F O R K S** 🍴 ───╮
-│   \`${data.forks_count}\`                               │
-╰───────────────────────────────╯
-
-╭─── ⭐ **S T A R S** ⭐ ───╮
-│   \`${data.stargazers_count}\`                               │
-╰───────────────────────────────╯
-
-✨ *ᴇxᴘʟᴏʀᴇ ᴛʜᴇ ʙʀɪʟʟɪᴀɴᴄᴇ ᴏғ ᴘᴏᴘᴋɪᴅ xᴍᴅ!* ✨
-          `.trim(),
+╔══════════════════════════════════════════════════════════════════════════════════════════════╗
+║                           💎💖 *𝐏 𝐎 𝐏 𝐊 𝐈 𝐃 - 𝐗 𝐌 𝐃* 💖💎                                           ║
+╠════════════════════════════════════════════════════════════════════════════════════════════════╣
+║         💫 **Welcome to the World of Innovation!** Explore the powerful features of XTECH! 💫       ║
+╠════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                                    ║
+║ 🔗 **Repository**: \`${repoUrl}\`                                                                    ║
+║ 🍓 **Forks**: \`${data.forks_count}\` ✨                                                              ║
+║ 🌟 **Stars**: \`${data.stargazers_count}\` 🌈                                                         ║
+║                                                                                                    ║
+╠════════════════════════════════════════════════════════════════════════════════════════════════╣
+║          💖 *Unlock, Collaborate, and Explore with POPKID XTECH! Join the Revolution* 💖              ║
+╚════════════════════════════════════════════════════════════════════════════════════════════════╝
+`.trim(),
         };
+
         sock.sendMessage(m.from, stylishMessage, { quoted: m });
       } else {
-        sock.sendMessage(m.from, { text: 'Hmm, unable to retrieve full repository details. 🤔', quoted: m });
+        sock.sendMessage(m.from, { text: 'Oops! We couldn’t fetch all the details. Please try again later. 🥺', quoted: m });
       }
     } catch (error) {
       console.error("Error fetching repo info:", error);
-      sock.sendMessage(m.from, { text: '⚠️ Oops! Something went wrong while getting the repo info. 😥', quoted: m });
+      sock.sendMessage(m.from, { text: '⚠️ Oh no! Something went wrong with fetching the repo details. 😢', quoted: m });
     } finally {
       await m.React('✅');
     }
