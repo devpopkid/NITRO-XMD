@@ -1,44 +1,52 @@
 import config from '../../config.cjs';
 import { vcard } from '@adiwajshing/baileys'; // Assuming you're using baileys
 
-const createVCF = async (m, sock) => {
+const contacts = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
-  if (cmd === "vcf") {
-    await m.React('⏳');
+  if (cmd === "contacts") {
+    const start = new Date().getTime();
+    await m.React('⏳'); // Initial "ping style" feedback
+
+    if (!m.isGroup) {
+      await sock.sendMessage(m.from, { text: 'This command can only be used in groups.' }, { quoted: m });
+      return;
+    }
 
     try {
       const groupMetadata = await sock.groupMetadata(m.from);
       const participants = groupMetadata.participants;
-      const vcards = [];
-      const emojis = '💚💛🧡💙💜';
+      const vcfString = [];
+      const emojis = ['😀', '😎', '🥳', '👍', '🌟', '🎉', '🎈', '🎁', '🎵', '🎶']; // Example emojis
 
       for (const participant of participants) {
-        const contactName = `popkid${emojis} ${participant.id.split('@')[0]}`;
-        const vcardString = `BEGIN:VCARD\nVERSION:3.0\nFN:${contactName}\nTEL;waid=${participant.id.split('@')[0]}:+${participant.id.split('@')[0]}\nEND:VCARD`;
-        vcards.push(vcardString);
+        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        const contactName = participant.pushName || participant.id.split('@')[0]; // Try pushName, else use phone number
+        const vcardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${randomEmoji} ${contactName}\nTEL;type=CELL;waid=${participant.id.split('@')[0]}:${participant.id.split('@')[0]}\nEND:VCARD`;
+        vcfString.push(vcardData);
       }
 
-      const vcfContent = vcards.join('\n');
-      const fileName = `popkid_group_contacts_${new Date().toISOString().slice(0, 10)}.vcf`;
+      const vcfFile = vcfString.join('\n');
+      const end = new Date().getTime();
+      const responseTime = (end - start) / 1000;
+      const processingIndicator = 'Gathering Contacts  sammeln  sammeln  sammeln  sammeln  sammeln  sammeln  sammeln'; // Mimicking the ping style
 
       await sock.sendMessage(
         m.from,
         {
-          document: Buffer.from(vcfContent),
+          document: Buffer.from(vcfFile),
           mimetype: 'text/vcard',
-          fileName: fileName,
+          fileName: `group_contacts_${groupMetadata.subject.replace(/\s+/g, '_')}.vcf`,
+          caption: `*${processingIndicator} ${responseTime.toFixed(2)} s* - Here are the group contacts!`, // Adding a caption with "ping style" info
         },
         { quoted: m }
       );
-
-      await m.React('✅');
     } catch (error) {
-      console.error("Error creating VCF:", error);
-      await m.reply("An error occurred while creating the VCF.");
+      console.error('Error fetching contacts:', error);
+      await sock.sendMessage(m.from, { text: 'An error occurred while fetching contacts.' }, { quoted: m });
     }
   }
 };
 
-export default createVCF;
+export default contacts;
