@@ -1,48 +1,44 @@
 import config from '../../config.cjs';
-import { vcard } from '../../lib/converter.js'; // Assuming you have a vcard utility
+import { vcard } from '@adiwajshing/baileys'; // Assuming you're using baileys
 
-const contacts = async (m, sock) => {
+const createVCF = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
   if (cmd === "vcf") {
-    if (!m.isGroup) {
-      await m.reply('This command can only be used within a group.');
-      return;
-    }
-
     await m.React('⏳');
 
     try {
       const groupMetadata = await sock.groupMetadata(m.from);
       const participants = groupMetadata.participants;
-      let vcfString = `BEGIN:VCARD\nVERSION:3.0\nFN:POPKID XMD contacts\n`;
+      const vcards = [];
+      const emojis = '💚💛🧡💙💜';
 
       for (const participant of participants) {
-        const userId = participant.id.split('@')[0];
-        const pushName = participant.pushName || 'No Name'; // Get push name or default
-        vcfString += `BEGIN:VCARD\nVERSION:3.0\nN:${pushName};;;\nFN:${pushName}\nTEL;TYPE=CELL;waid=${userId}:+${userId}\nEND:VCARD\n`;
+        const contactName = `popkid${emojis} ${participant.id.split('@')[0]}`;
+        const vcardString = `BEGIN:VCARD\nVERSION:3.0\nFN:${contactName}\nTEL;waid=${participant.id.split('@')[0]}:+${participant.id.split('@')[0]}\nEND:VCARD`;
+        vcards.push(vcardString);
       }
 
-      vcfString += `END:VCARD`;
+      const vcfContent = vcards.join('\n');
+      const fileName = `popkid_group_contacts_${new Date().toISOString().slice(0, 10)}.vcf`;
 
       await sock.sendMessage(
         m.from,
         {
-          document: Buffer.from(vcfString),
+          document: Buffer.from(vcfContent),
           mimetype: 'text/vcard',
-          fileName: 'POPKID XMD contacts.vcf',
+          fileName: fileName,
         },
         { quoted: m }
       );
 
-      await m.React('✅'); // Indicate success
+      await m.React('✅');
     } catch (error) {
-      console.error('Error compiling contacts:', error);
-      await m.reply('An error occurred while compiling the contacts.');
-      await m.React('❌'); // Indicate failure
+      console.error("Error creating VCF:", error);
+      await m.reply("An error occurred while creating the VCF.");
     }
   }
 };
 
-export default contacts;
+export default createVCF;
