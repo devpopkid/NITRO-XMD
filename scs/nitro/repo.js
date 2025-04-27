@@ -17,7 +17,7 @@ const repo = async (m, sock) => {
       return;
     }
     const [owner, repoName] = repoParts;
-    const apiUrl = `https://api.github.com/repos/${owner}/${repoName}`;
+    const apiUrl = `https://api.github.com/repos/Popkiddevs/POPKID-XTECH`;
 
     await m.React('⏳');
 
@@ -28,14 +28,17 @@ const repo = async (m, sock) => {
       if (data.stargazers_count !== undefined && data.forks_count !== undefined) {
         const stars = data.stargazers_count;
         const forks = data.forks_count;
-        let message = `✨ **${repoName} Repository** ✨\n\n`;
-        message += `🔗 **Link:** ${config.REPO_LINK}\n`;
-        message += `⭐ **Stars:** ${stars}\n`;
-        message += `🍴 **Forks:** ${forks}\n\n`;
+        let message = `╔═══════< 🌟 >════════╗\n`;
+        message += `║ ✨ **${repoName} Repository** ✨ ║\n`;
+        message += `╠═══════════════════════╣\n`;
+        message += `║ 🔗 **Link:** ${config.REPO_LINK} ║\n`;
+        message += `║ ⭐ **Stars:** ${stars.toString().padEnd(19)} ║\n`; // Pad for alignment
+        message += `║ 🍴 **Forks:** ${forks.toString().padEnd(19)} ║\n`; // Pad for alignment
         if (config.NEWSLETTER_CHANNEL_ID) {
-          message += `📢 Join our newsletter for updates: <#${config.NEWSLETTER_CHANNEL_ID}>\n`;
+          message += `║ 📢 Newsletter: <#${config.NEWSLETTER_CHANNEL_ID}> ║\n`;
         }
-        message += `\n${'─'.repeat(20)} < 🌟 > ${'─'.repeat(20)}`;
+        message += `╚═══════════════════════╝\n`;
+        message += `  _Fetched on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString('en-KE', { timeZone: 'Africa/Nairobi' })} EAT_`;
 
         const imageOptions = config.REPO_IMAGE_URL ? { image: { url: config.REPO_IMAGE_URL } } : {};
 
