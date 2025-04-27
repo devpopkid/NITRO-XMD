@@ -1,46 +1,43 @@
 import config from '../../config.cjs';
-import { vcard } from 'wa-automate';
 
-const createGroupVCF = async (m, sock) => {
+const createVCF = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
-  if (cmd === "groupvcf") {
+  if (cmd === "vcf") {
+    if (!m.isGroup) {
+      return m.reply("This command can only be used in groups.");
+    }
+
     await m.React('⏳');
 
     try {
       const groupMetadata = await sock.groupMetadata(m.from);
-      const participants = groupMetadata?.participants || [];
+      const participants = groupMetadata.participants;
 
-      if (participants.length === 0) {
-        await sock.sendMessage(m.from, { text: 'No participants found in this group.' }, { quoted: m });
-        return;
-      }
+      let vcfContent = "BEGIN:VCARD\nVERSION:3.0\n";
+      participants.forEach(participant => {
+        vcfContent += `TEL;type=CELL;waid=${participant.id.split('@')[0]}:+${participant.id.split('@')[0]}\n`;
+      });
+      vcfContent += "END:VCARD\n";
 
-      let vcfString = '';
-      for (const participant of participants) {
-        const number = participant.id.split('@')[0];
-        const name = participant.pushName || number; // Use pushName if available, otherwise use the number
-        vcfString += vcard(name, number + '@s.whatsapp.net', 'WhatsApp Contact') + '\n';
-      }
-
-      const fileName = `group_${groupMetadata.id.split('@')[0]}.vcf`;
+      // You might want to send this as a document with a .vcf extension
       await sock.sendMessage(
         m.from,
         {
-          document: Buffer.from(vcfString),
+          document: Buffer.from(vcfContent, 'utf-8'),
           mimetype: 'text/vcard',
-          fileName: fileName,
+          fileName: 'group_contacts.vcf',
         },
         { quoted: m }
       );
       await m.React('✅');
     } catch (error) {
       console.error("Error creating VCF:", error);
-      await sock.sendMessage(m.from, { text: 'An error occurred while creating the VCF.' }, { quoted: m });
+      await m.reply("An error occurred while trying to create the VCF.");
       await m.React('❌');
     }
   }
 };
 
-export default createGroupVCF;
+export default createVCF;
