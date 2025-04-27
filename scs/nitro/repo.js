@@ -20,14 +20,14 @@ const repo = async (m, sock) => {
         const stylishMessage = {
           image: { url: imageUrl },
           caption: `
-╔═════ 🤖 <0xF0><0x9F><0x91><0x80> ═════╗
+╔═════ 🤖  ═════╗
   ✨ *P O P K I D - X T E C H* ✨
 ╚═══════════════════╝
 
 🔗 **Repository:**
    \`${repoUrl}\`
 
-<0xF0><0x9F><0xAB><0x82> **Forks:**
+ **Forks:**
    \`${data.forks_count}\`
 
 💖 *ᴇxᴘʟᴏʀᴇ ᴛʜᴇ ᴘᴏᴡᴇʀ ᴏғ ᴘᴏᴘᴋɪᴅ xᴍᴅ!* 💖
