@@ -1,6 +1,14 @@
 import { serialize } from '../../lib/Serializer.js';
 
-const antilinkSettings = {}; // { groupId: { enabled: boolean, warningLimit: number, warnedUsers: { userId: warningCount } } }
+const antilinkSettings = {}; // { groupId: { enabled: boolean, action: 'delete' | 'warn' | 'kick', warningLimit: number, warnedUsers: { userId: warningCount } } }
+const antilinkMenu = `
+🛡️ Antilink Settings 🛡️
+
+Choose an option by typing the corresponding number:
+1. 🗑️ Delete Links
+2. ⚠️ Warn Link Senders (with a limit)
+3. 🚪 Kick Link Senders
+`;
 
 export const handleAntilink = async (m, sock, logger, isBotAdmins, isAdmins, isCreator) => {
     const PREFIX = /^[\\/!#.]/;
@@ -10,9 +18,6 @@ export const handleAntilink = async (m, sock, logger, isBotAdmins, isAdmins, isC
     const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
     if (cmd === 'antilink') {
-        const args = m.body.slice(prefix.length + cmd.length).trim().split(/\s+/);
-        const action = args[0] ? args[0].toLowerCase() : '';
-
         if (!m.isGroup) {
             await sock.sendMessage(m.from, { text: '🚫 This command is exclusively for group chats! 🚫' }, { quoted: m });
             return;
@@ -23,52 +28,57 @@ export const handleAntilink = async (m, sock, logger, isBotAdmins, isAdmins, isC
             return;
         }
 
-        if (action === 'on') {
-            if (isAdmins) {
-                antilinkSettings[m.from] = { enabled: true, warningLimit: 3, warnedUsers: {} }; // Setting default warning limit
-                await sock.sendMessage(m.from, { text: '✅ Antilink feature is now 활성화 (active) in this group! 🛡️' }, { quoted: m });
-            } else {
-                await sock.sendMessage(m.from, { text: '🔒 Sorry, only the group admins have the privilege to enable this सुरक्षा (security) feature. 🛡️' }, { quoted: m });
-            }
+        if (!isAdmins) {
+            await sock.sendMessage(m.from, { text: '🔒 Sorry, only the group admins have the privilege to configure the antilink feature. 🛡️' }, { quoted: m });
             return;
         }
 
-        if (action === 'off') {
-            if (isAdmins) {
-                delete antilinkSettings[m.from];
-                await sock.sendMessage(m.from, { text: '🔓 Got it! The antilink feature has been 비활성화 (deactivated) for this group. 🕊️' }, { quoted: m });
-            } else {
-                await sock.sendMessage(m.from, { text: '🔑 Apologies, but only group admins can disable this safeguard. 🛡️' }, { quoted: m });
-            }
+        // If no further arguments, show the menu
+        const args = m.body.slice(prefix.length + cmd.length).trim().split(/\s+/);
+        if (args.length === 0 || args[0] === '') {
+            await sock.sendMessage(m.from, { text: antilinkMenu }, { quoted: m });
             return;
         }
 
-        if (action === 'warnlimit' && args[1] && !isNaN(args[1])) {
-            const limit = parseInt(args[1]);
-            if (isAdmins) {
-                if (antilinkSettings[m.from]) {
-                    antilinkSettings[m.from].warningLimit = limit;
-                    await sock.sendMessage(m.from, { text: `⚠️ Okay, the antilink warning limit is now set to ${limit} strikes! 🚦` }, { quoted: m });
-                } else {
-                    await sock.sendMessage(m.from, { text: '🤔 Hmm, the antilink feature isn\'t enabled in this group yet. Use `/antilink on` to turn it on first! 🚀' }, { quoted: m });
-                }
-            } else {
-                await sock.sendMessage(m.from, { text: '🛡️ Only admins have the authority to adjust the warning limit. ⚙️' }, { quoted: m });
-            }
+        const choice = args[0];
+
+        if (choice === '1') {
+            antilinkSettings[m.from] = { enabled: true, action: 'delete', warnedUsers: {} };
+            await sock.sendMessage(m.from, { text: `🗑️ Antilink is now ON! Any group links shared by non-admins/creators will be immediately deleted.` }, { quoted: m });
             return;
         }
 
-        await sock.sendMessage(m.from, { text: `⚙️ Usage: ${prefix + cmd} on | off | warnlimit <number> 🛠️` }, { quoted: m });
+        if (choice === '2') {
+            antilinkSettings[m.from] = { enabled: true, action: 'warn', warningLimit: 3, warnedUsers: {} };
+            await sock.sendMessage(m.from, { text: `⚠️ Antilink with warnings is now ON! Non-admins/creators will be warned up to 3 times before being kicked.` }, { quoted: m });
+            return;
+        }
+
+        if (choice === '3') {
+            antilinkSettings[m.from] = { enabled: true, action: 'kick', warnedUsers: {} };
+            await sock.sendMessage(m.from, { text: `🚪 Antilink with immediate kick is now ON! Non-admins/creators sharing group links will be kicked immediately.` }, { quoted: m });
+            return;
+        }
+
+        if (args[0] === 'off') {
+            delete antilinkSettings[m.from];
+            await sock.sendMessage(m.from, { text: '🔓 Antilink feature has been turned OFF for this group. 🕊️' }, { quoted: m });
+            return;
+        }
+
+        await sock.sendMessage(m.from, { text: `⚙️ Usage: ${prefix + cmd} (to see options) or ${prefix + cmd} off to disable.` }, { quoted: m });
         return;
     }
 
     if (antilinkSettings[m.from] && antilinkSettings[m.from].enabled) {
         const groupLinkRegex = /(?:https?:\/\/)?chat\.whatsapp\.com\/([a-zA-Z0-9_-]+)/gi;
         const matchedLinks = m.body.match(groupLinkRegex);
+        const currentAction = antilinkSettings[m.from].action || 'warn';
+        const warningLimit = antilinkSettings[m.from].warningLimit || 3;
 
         if (matchedLinks) {
             if (!isBotAdmins) {
-                await sock.sendMessage(m.from, { text: `👮‍♀️ To effectively manage links and maintain order, I need to be an administrator in this group. Kindly grant me admin status! 🙏` });
+                await sock.sendMessage(m.from, { text: `👮‍♀️ I need to be an admin to manage links effectively! 🙏` });
                 return;
             }
 
@@ -77,58 +87,93 @@ export const handleAntilink = async (m, sock, logger, isBotAdmins, isAdmins, isC
 
             for (const link of matchedLinks) {
                 if (currentGroupLinkRegex.test(link)) {
-                    await sock.sendMessage(m.from, { text: `🔗 That link points right back to this amazing group! 😉` });
+                    await sock.sendMessage(m.from, { text: `🔗 That's a link to this group! No action taken.` });
                     continue;
                 }
 
                 if (isAdmins || isCreator) {
-                    await sock.sendMessage(m.from, { text: `👑 As an admin or the esteemed group creator, you have the green light to share links! 🚀` });
-                    continue;
+                    continue; // Admins and creator are exempt
                 }
 
                 const sender = m.sender;
-                if (!antilinkSettings[m.from].warnedUsers[sender]) {
-                    antilinkSettings[m.from].warnedUsers[sender] = 0;
-                }
-                antilinkSettings[m.from].warnedUsers[sender]++;
 
-                const warningCount = antilinkSettings[m.from].warnedUsers[sender];
-                const warningLimit = antilinkSettings[m.from].warningLimit || 3; // Defaulting to 3 if not explicitly set
+                if (currentAction === 'delete') {
+                    try {
+                        await sock.sendMessage(m.from, {
+                            delete: {
+                                remoteJid: m.from,
+                                fromMe: false,
+                                id: m.key.id,
+                                participant: m.key.participant
+                            }
+                        });
+                        await sock.sendMessage(m.from, { text: `🗑️ Link shared by @${sender.split("@")[0]} has been deleted.`, contextInfo: { mentionedJid: [sender] } });
+                    } catch (error) {
+                        logger.error(`⚠️ Error deleting message from ${sender} in ${m.from}: ${error}`);
+                        await sock.sendMessage(m.from, { text: `😬 Couldn't delete the link message.` });
+                    }
+                } else if (currentAction === 'warn') {
+                    if (!antilinkSettings[m.from].warnedUsers[sender]) {
+                        antilinkSettings[m.from].warnedUsers[sender] = 0;
+                    }
+                    antilinkSettings[m.from].warnedUsers[sender]++;
 
-                // Immediately zap 💥 the message containing the forbidden link
-                try {
-                    await sock.sendMessage(m.from, {
-                        delete: {
-                            remoteJid: m.from,
-                            fromMe: false,
-                            id: m.key.id,
-                            participant: m.key.participant
+                    try {
+                        await sock.sendMessage(m.from, {
+                            delete: {
+                                remoteJid: m.from,
+                                fromMe: false,
+                                id: m.key.id,
+                                participant: m.key.participant
+                            }
+                        });
+                    } catch (error) {
+                        logger.error(`⚠️ Error deleting message from ${sender} in ${m.from}: ${error}`);
+                        await sock.sendMessage(m.from, { text: `😬 Couldn't delete the link message.` });
+                    }
+
+                    if (antilinkSettings[m.from].warnedUsers[sender] >= warningLimit) {
+                        try {
+                            await sock.groupParticipantsUpdate(m.from, [sender], 'remove');
+                            await sock.sendMessage(m.from, {
+                                text: `@${sender.split("@")[0]} has been removed 🚪 for exceeding the link sharing limit (${warningLimit} warnings).`,
+                                contextInfo: { mentionedJid: [sender] }
+                            });
+                            delete antilinkSettings[m.from].warnedUsers[sender];
+                        } catch (error) {
+                            logger.error(`🚨 Error kicking ${sender} from ${m.from}: ${error}`);
+                            await sock.sendMessage(m.from, { text: `😓 Couldn't remove @${sender.split("@")[0]} due to an error.`, contextInfo: { mentionedJid: [sender] } });
                         }
-                    });
-                } catch (error) {
-                    logger.error(`⚠️ Uh oh! Encountered an error while trying to delete a suspicious message from ${sender} in ${m.from}: ${error}`);
-                    await sock.sendMessage(m.from, { text: `😬 Oops! I couldn't quite delete that link message...` });
-                }
-
-                if (warningCount >= warningLimit) {
-                    // Time to bid farewell 👋 to the link spammer
+                    } else {
+                        await sock.sendMessage(m.from, {
+                            text: `\`\`\`「 ⚠️ Group Link Detected! ⚠️ 」\`\`\`\n\n@${sender.split("@")[0]}, please don't share group links here. You have ${antilinkSettings[m.from].warnedUsers[sender]}/${warningLimit} warnings. Further violations will result in removal. 🚫`,
+                            contextInfo: { mentionedJid: [sender] }
+                        }, { quoted: m });
+                    }
+                } else if (currentAction === 'kick') {
+                    try {
+                        await sock.sendMessage(m.from, {
+                            delete: {
+                                remoteJid: m.from,
+                                fromMe: false,
+                                id: m.key.id,
+                                participant: m.key.participant
+                            }
+                        });
+                    } catch (error) {
+                        logger.error(`⚠️ Error deleting message from ${sender} in ${m.from}: ${error}`);
+                        await sock.sendMessage(m.from, { text: `😬 Couldn't delete the link message.` });
+                    }
                     try {
                         await sock.groupParticipantsUpdate(m.from, [sender], 'remove');
                         await sock.sendMessage(m.from, {
-                            text: `@${sender.split("@")[0]} has been removed 🚪 for repeatedly sharing group links (beyond the ${warningLimit} warning threshold! 🚫)`,
+                            text: `@${sender.split("@")[0]} has been removed 🚪 for sharing a group link. 🚫`,
                             contextInfo: { mentionedJid: [sender] }
                         });
-                        delete antilinkSettings[m.from].warnedUsers[sender]; // Resetting the warning count for this user
                     } catch (error) {
-                        logger.error(`🚨 An error occurred while attempting to remove ${sender} from ${m.from}: ${error}`);
-                        await sock.sendMessage(m.from, { text: `😓 I couldn't remove @${sender.split("@")[0]} due to a technical hiccup.`, contextInfo: { mentionedJid: [sender] } });
+                        logger.error(`🚨 Error kicking ${sender} from ${m.from}: ${error}`);
+                        await sock.sendMessage(m.from, { text: `😓 Couldn't remove @${sender.split("@")[0]} due to an error.`, contextInfo: { mentionedJid: [sender] } });
                     }
-                } else {
-                    // A gentle nudge 👆 and a friendly warning this time
-                    await sock.sendMessage(m.from, {
-                        text: `\`\`\`「 🔗 Group Link Detected! 🔗 」\`\`\`\n\nHey @${sender.split("@")[0]}, please be mindful of sharing group invite links here. You've received ${warningCount}/${warningLimit} warnings. Further violations will unfortunately lead to removal from the group. ⚠️`,
-                        contextInfo: { mentionedJid: [sender] }
-                    }, { quoted: m });
                 }
             }
         }
