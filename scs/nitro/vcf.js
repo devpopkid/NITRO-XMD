@@ -4,9 +4,9 @@ const groupToVCF = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
-  if (cmd === "vcf" || cmd === "groupvcf") {
+  if (cmd === "grovcf" || cmd === "groupvcf") {
     if (!m.isGroup) {
-      await sock.sendMessage(m.from, { text: 'This command can only be used in a group.' }, { quoted: m });
+      await sock.sendMessage(m.from, { text: 'This command can only be used within a group.' }, { quoted: m });
       return;
     }
 
@@ -14,25 +14,34 @@ const groupToVCF = async (m, sock) => {
 
     try {
       const groupMetadata = await sock.groupMetadata(m.from);
-      const contacts = groupMetadata.participants.map(participant => {
+      const contacts = groupMetadata.participants.map(async (participant) => {
         const number = participant.id.split(':')[0];
         let name = participant.pushName;
 
-        // Improve fallback name if pushName is missing or just the number
-        if (!name || name === number) {
-          name = `Group Member (${number.split('@')[0]})`; // Use a more descriptive name
+        // Attempt to fetch user information to get a potentially more accurate name
+        try {
+          const user = await sock.getUser(participant.id);
+          if (user?.name) {
+            name = user.name;
+          }
+        } catch (error) {
+          console.warn(`Could not fetch user info for ${number}:`, error);
+          // Fallback to pushName or a generic name if fetching fails
+          name = name || `Group Member (${number.split('@')[0]})`;
         }
 
         return `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${number.split('@')[0]}\nEND:VCARD`;
       });
 
-      if (contacts.length === 0) {
-        await sock.sendMessage(m.from, { text: 'No contacts found in this group.' }, { quoted: m });
+      const resolvedContacts = await Promise.all(contacts);
+
+      if (resolvedContacts.length === 0) {
+        await sock.sendMessage(m.from, { text: 'There are no contacts to export in this group.' }, { quoted: m });
         return;
       }
 
-      const vcfContent = contacts.join('\n');
-      const fileName = `${groupMetadata.subject.replace(/[^a-zA-Z0-9]/g, '_') || 'group_contacts'}.vcf`;
+      const vcfContent = resolvedContacts.join('\n');
+      const fileName = "popkid XMD.vcf";
 
       await sock.sendMessage(
         m.from,
@@ -45,8 +54,8 @@ const groupToVCF = async (m, sock) => {
       );
       await m.React('✅');
     } catch (error) {
-      console.error("Error generating VCF:", error);
-      await sock.sendMessage(m.from, { text: 'An error occurred while generating the VCF file.' }, { quoted: m });
+      console.error("An error occurred while generating the VCF:", error);
+      await sock.sendMessage(m.from, { text: 'Oops! Something went wrong while creating the VCF file.' }, { quoted: m });
       await m.React('❌');
     }
   }
