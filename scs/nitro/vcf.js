@@ -4,7 +4,7 @@ const createVCF = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
-  if (cmd === "vcf") {
+  if (cmd === "groupvcf") {
     if (!m.isGroup) {
       return m.reply("This command can only be used in groups.");
     }
@@ -16,12 +16,19 @@ const createVCF = async (m, sock) => {
       const participants = groupMetadata.participants;
 
       let vcfContent = "BEGIN:VCARD\nVERSION:3.0\n";
-      participants.forEach(participant => {
-        vcfContent += `TEL;type=CELL;waid=${participant.id.split('@')[0]}:+${participant.id.split('@')[0]}\n`;
+
+      // Iterate through participants and use their usernames (display names)
+      participants.forEach((participant, index) => {
+        const username = participant.notify || `Popkid Contact ${index + 1}`; // Use the display name or fallback to default name
+        const phoneNumber = participant.id.split('@')[0]; // Extract the phone number (WAID)
+
+        // Add each contact's VCF entry with username
+        vcfContent += `FN:${username} 📱\nTEL;type=CELL;waid=${phoneNumber}:+${phoneNumber}\n`;
       });
+
       vcfContent += "END:VCARD\n";
 
-      // You might want to send this as a document with a .vcf extension
+      // Send the VCF as a document with a .vcf extension
       await sock.sendMessage(
         m.from,
         {
