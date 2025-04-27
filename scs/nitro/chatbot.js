@@ -1,4 +1,5 @@
 import config from '../../config.cjs';
+import { askAI } from './lib/ai.js'; // NEW: a helper that talks to AI
 
 let autoReplyStatus = new Map(); // For per-chat ON/OFF
 
@@ -11,28 +12,24 @@ const chatbot = async (m, sock) => {
   const chatId = m.key.remoteJid;
 
   if (cmd === 'bot') {
-    if (args.toLowerCase() === 'on') {
-      autoReplyStatus.set(chatId, true);
-      await sock.sendMessage(chatId, { text: '*✅ Auto-Reply is now ON!*' }, { quoted: m });
-    } else if (args.toLowerCase() === 'off') {
-      autoReplyStatus.set(chatId, false);
-      await sock.sendMessage(chatId, { text: '*❌ Auto-Reply is now OFF!*' }, { quoted: m });
+    const arg = args.toLowerCase();
+    if (arg === 'on' || arg === 'off') {
+      autoReplyStatus.set(chatId, arg === 'on');
+      await sock.sendMessage(chatId, { text: `*${arg === 'on' ? '✅ Chatbot is now ON!' : '❌ Chatbot is now OFF!'}*` }, { quoted: m });
     } else {
       await sock.sendMessage(chatId, { text: '*⚙️ Usage: .bot on / .bot off*' }, { quoted: m });
     }
-    return; // Exit after handling bot command
+    return;
   }
 
   const isAutoReplyOn = autoReplyStatus.get(chatId) || false;
 
   if (isAutoReplyOn && !isCmd) {
-    const start = Date.now();
-    await sock.sendMessage(chatId, { react: { text: '🤖', key: m.key } }); // React to the message
-    const end = Date.now();
-    const responseTime = (end - start) / 1000;
+    await sock.sendMessage(chatId, { react: { text: '🤖', key: m.key } });
 
-    const replyText = `*Hello there! ▰▰▰▰▰▰▱▱▱▱ 70${responseTime.toFixed(2)}0 ms*`;
-    await sock.sendMessage(chatId, { text: replyText }, { quoted: m });
+    const userMessage = m.body;
+    const botReply = await askAI(userMessage); // NEW: Ask AI model
+    await sock.sendMessage(chatId, { text: botReply }, { quoted: m });
   }
 }
 
