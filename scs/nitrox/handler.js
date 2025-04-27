@@ -6,6 +6,7 @@ import config from '../../config.cjs';
 import { smsg } from '../../lib/myfunc.cjs';
 import { handleAntilink } from './antilink.js';
 import { fileURLToPath } from 'url';
+import antidelete from './antidelete.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
