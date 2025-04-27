@@ -1,61 +1,70 @@
 import config from '../../config.cjs';
 
-let antideleteEnabled = false; // Keep track of the antidelete state
+let antiDeleteEnabled = false;  // Track whether the anti-delete feature is enabled
 
-const antidelete = async (m, sock, store) => {
+const antidelete = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
+  const text = m.body.slice(prefix.length + cmd.length).trim();
 
+  // Toggle Anti-Delete Feature
   if (cmd === "antidelete") {
-    antideleteEnabled = !antideleteEnabled;
-    const status = antideleteEnabled ? '*Anti-delete is now ON! 🛡️ Deleted messages will be shown here.*' : '*Anti-delete is now OFF! 🚫 Deleted messages will no longer be displayed.*';
-    sock.sendMessage(m.from, { text: status }, { quoted: m });
-    return; // Exit the function after toggling the state
+    if (text === "on") {
+      antiDeleteEnabled = true;
+      await sock.sendMessage(m.from, { text: "✅ Anti-delete feature is now **enabled**. Deleted messages will be sent back to you!" });
+    } else if (text === "off") {
+      antiDeleteEnabled = false;
+      await sock.sendMessage(m.from, { text: "❌ Anti-delete feature is now **disabled**. You won't get deleted messages anymore." });
+    } else {
+      await sock.sendMessage(m.from, { text: "⚠️ Invalid option. Use 'on' or 'off' to toggle the anti-delete feature." });
+    }
+    return;
   }
 
-  // Listen for message deletions only if antidelete is enabled
-  if (antideleteEnabled && m.type === 'message_revoke') {
-    if (m.key.fromMe) return; // Don't show if the bot deleted it
+  // If Anti-Delete is enabled, listen for deleted messages
+  if (antiDeleteEnabled) {
+    sock.ev.on('messages.delete', async (deleted) => {
+      const { key, from, participant, remoteJid } = deleted[0];
 
-    // Fetch the original message content if available in the store
-    const deletedMessage = store?.messages[m.key.remoteJid]?.find(
-      (msg) => msg.key.id === m.key.id
-    );
+      // Check if the message is from a group (not a broadcast or status message)
+      if (remoteJid && remoteJid !== 'status@broadcast') {
+        // Retrieve the original deleted message using the key
+        const deletedMessage = await sock.loadMessage(from, key.id);
+        
+        if (deletedMessage) {
+          // Prepare the content of the deleted message
+          let messageContent = '';
+          
+          if (deletedMessage.message.conversation) {
+            messageContent = deletedMessage.message.conversation; // If it's a text message
+          } else if (deletedMessage.message.imageMessage) {
+            messageContent = '[📸 Image Message]'; // If it was an image
+          } else if (deletedMessage.message.videoMessage) {
+            messageContent = '[🎥 Video Message]'; // If it was a video
+          } else if (deletedMessage.message.audioMessage) {
+            messageContent = '[🎧 Audio Message]'; // If it was an audio
+          } else {
+            messageContent = '[❗ Unsupported Message Type]';
+          }
 
-    if (deletedMessage?.message) {
-      const senderName = m.pushName ? m.pushName : 'Someone';
-      let messageContent = '';
-
-      if (deletedMessage.message.ephemeralMessage) {
-        messageContent = '*(Ephemeral Message Deleted)*\n' + Object.keys(deletedMessage.message.ephemeralMessage.message)[0];
-      } else {
-        messageContent = Object.keys(deletedMessage.message)[0];
-        if (messageContent === 'conversation') {
-          messageContent = deletedMessage.message.conversation;
-        } else if (messageContent === 'imageMessage') {
-          messageContent = '🖼️ _(Image Deleted)_';
-        } else if (messageContent === 'videoMessage') {
-          messageContent = '🎬 _(Video Deleted)_';
-        } else if (messageContent === 'audioMessage') {
-          messageContent = '🎵 _(Audio Deleted)_';
-        } else if (messageContent === 'stickerMessage') {
-          messageContent = ' sticker _(Sticker Deleted)_';
-        } else if (messageContent === 'documentMessage') {
-          messageContent = '📄 _(Document Deleted)_';
-        } else if (messageContent === 'locationMessage') {
-          messageContent = '📍 _(Location Deleted)_';
-        } else if (messageContent === 'contactMessage') {
-          messageContent = '👤 _(Contact Deleted)_';
+          // Send a direct message to the user who deleted the message
+          if (participant) {
+            await sock.sendMessage(participant, { text: `⚠️ Your deleted message: "${messageContent}"` });
+          }
         }
       }
+    });
+  }
 
-      const displayText = `⚠️ *DELETED MESSAGE DETECTED!* ⚠️\n\n👤 *Sender:* ${senderName}\n💬 *Message:* ${messageContent}`;
-      sock.sendMessage(m.from, { text: displayText });
-    } else {
-      // If the message isn't in the store, we can only indicate a deletion
-      const displayText = `⚠️ *DELETED MESSAGE DETECTED!* ⚠️\n\n_(Original content not available)_`;
-      sock.sendMessage(m.from, { text: displayText });
-    }
+  // Example of ping command to respond with pong and response time
+  if (cmd === "ping") {
+    const start = new Date().getTime();
+    await m.React('⏳');
+    const end = new Date().getTime();
+    const responseTime = (end - start) / 1000;
+
+    const pingText = `*Pong🏓▰▰▰▰▰▰▱▱▱▱ 70${responseTime.toFixed(2)}0 ms*`;
+    sock.sendMessage(m.from, { text: pingText }, { quoted: m });
   }
 };
 
