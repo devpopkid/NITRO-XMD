@@ -6,7 +6,7 @@ const compileVCF = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
-  if (cmd === "compilevcf") {
+  if (cmd === "vcf") {
     // Simulate gathering contact info from the group
     const contacts = [
       { name: 'John Doe', phone: '+1234567890', email: 'john.doe@example.com' },
