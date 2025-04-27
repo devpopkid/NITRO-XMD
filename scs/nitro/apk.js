@@ -9,7 +9,7 @@ const apkDownloader = async (m, sock) => {
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
   const text = m.body.slice(prefix.length + cmd.length).trim();
 
-  if (cmd === "apk") {
+  if (cmd === "app") {
     if (!text) {
       return sock.sendMessage(m.from, { text: "❌ *Please provide an app name to search.*" }, { quoted: m });
     }
