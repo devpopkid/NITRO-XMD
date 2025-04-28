@@ -29,6 +29,16 @@ _Stay tuned for more updates!_ 🔥
 
 `;
 
+    const buttons = [
+      {
+        "name": "quick_reply",
+        "buttonParamsJson": JSON.stringify({
+          display_text: "Ping ⏳",
+          id: `${prefix}ping`
+        })
+      }
+    ];
+
     const msg = generateWAMessageFromContent(m.from, {
       viewOnceMessage: {
         message: {
@@ -57,7 +67,7 @@ _Stay tuned for more updates!_ 🔥
               forwardingScore: 999,
               isForwarded: true,
               forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363290715861418@newsletter',
+                newsletterJid: '254111385747',
                 newsletterName: "POPKID MD",
                 serverMessageId: 143
               }
