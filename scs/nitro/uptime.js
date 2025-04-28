@@ -5,7 +5,7 @@ const alive = async (m, Matrix) => {
   const uptimeSeconds = process.uptime();
   const days = Math.floor(uptimeSeconds / (24 * 3600));
   const hours = Math.floor((uptimeSeconds % (24 * 3600)) / 3600);
-  const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+  const minutes = Math.floor((uptimeSeconds % 3600)) / 60);
   const seconds = Math.floor(uptimeSeconds % 60);
 
   const prefix = /^[\\/!#.]/gi.test(m.body) ? m.body.match(/^[\\/!#.]/gi)[0] : '/';
@@ -15,7 +15,7 @@ const alive = async (m, Matrix) => {
     const uptimeMessage = `*🔹 POPKID MD IS ACTIVE 🔹*
 
 ╭───────═━┈┈━═──━┈⊷
-┇ *🗓️ ${days} Day(s)* 
+┇ *🗓️ ${days} Day(s)*
 ┇ *⏰ ${hours} Hour(s)*
 ┇ *🕒 ${minutes} Minute(s)*
 ┇ *⏳ ${seconds} Second(s)*
@@ -24,20 +24,10 @@ const alive = async (m, Matrix) => {
 💡 *Your bot is up and running!*
 
 *⚡ Fast, reliable, and always on!*
-    
+
 _Stay tuned for more updates!_ 🔥
 
 `;
-
-    const buttons = [
-      {
-        "name": "quick_reply",
-        "buttonParamsJson": JSON.stringify({
-          display_text: "Ping ⏳",
-          id: `${prefix}ping`
-        })
-      }
-    ];
 
     const msg = generateWAMessageFromContent(m.from, {
       viewOnceMessage: {
@@ -57,18 +47,15 @@ _Stay tuned for more updates!_ 🔥
               title: "🚀 POPKID MD - Uptime Status",
               gifPlayback: true,
               subtitle: "Bot Status",
-              hasMediaAttachment: false 
-            }),
-            nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
-              buttons
+              hasMediaAttachment: false
             }),
             contextInfo: {
-              mentionedJid: [m.sender], 
+              mentionedJid: [m.sender],
               forwardingScore: 999,
               isForwarded: true,
               forwardedNewsletterMessageInfo: {
-                newsletterJid: '254111385747',
-                newsletterName: "POPKID MD",
+                newsletterJid: '120363290715861418@newsletter',
+                newsletterName: "POPKID XMD",
                 serverMessageId: 143
               }
             }
