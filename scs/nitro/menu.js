@@ -14,7 +14,9 @@ const ping = async (m, sock) => {
     const menuText = `
 ╭━━━━━━━❀━✧✧✧━❀━━━━━━━╮
 🌟  *𝗣𝗢𝗣𝗞𝗜𝗗 𝗠𝗗 𝗕𝗢𝗧* 🌟
-*Version*: 7.1.0 | *Developed By*: 𝗣𝗢𝗣-𝗞𝗜𝗗
+*Version*: 7.1.0 | 
+*DEVELOPED BY POPKID🪆*
+> ULTRA SPEED ⚡ ⚡ 
 ╰━━━━━━━❀━✧✧✧━❀━━━━━━━╯
 
 ✨ *𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 𝗠𝗘𝗡𝗨* ✨
