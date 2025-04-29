@@ -11,12 +11,23 @@ const ping = async (m, sock) => {
     const end = new Date().getTime();
     const responseTime = (end - start) / 1000;
 
+    let profilePictureUrl = 'https://files.catbox.moe/kiy0hl.jpg'; // Default image URL
+    try {
+      const pp = await sock.profilePictureUrl(m.sender, 'image');
+      if (pp) {
+        profilePictureUrl = pp;
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile picture:", error);
+      // Use the default image if fetching fails
+    }
+
     const menuText = `
 ╭━━━━━━━❀━✧✧✧━❀━━━━━━━╮
 🌟  *𝗣𝗢𝗣𝗞𝗜𝗗 𝗠𝗗 𝗕𝗢𝗧* 🌟
-*Version*: 7.1.0 | 
+*Version*: 7.1.0 |
 *DEVELOPED BY POPKID🪆*
-> ULTRA SPEED ⚡ ⚡ 
+> ULTRA SPEED ⚡ ⚡
 ╰━━━━━━━❀━✧✧✧━❀━━━━━━━╯
 
 ✨ *𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 𝗠𝗘𝗡𝗨* ✨
@@ -24,53 +35,53 @@ const ping = async (m, sock) => {
 
 ╭━━━━━🍃━━━━━╮
 🌍  *𝗦𝗬𝗦𝗧𝗘𝗠 𝗠𝗘𝗡𝗨* 🌍
-| ⚡ | ${prefix}𝙿𝚒𝚗𝚐
-| 🟢 | ${prefix}𝙰𝚕𝚒𝚟𝚎
-| 🛠️ | ${prefix}𝙾𝚠𝚗𝚎𝚛
-| 🍔 | ${prefix}𝙼𝚎𝚗𝚞
+| ⚡ | ${prefix}ping
+| 🟢 | ${prefix}alive
+| 🛠️ | ${prefix}owner
+| 🍔 | ${prefix}menu
 ╰━━━━━🍃━━━━━╯
 
 ╭━━━━━🍀━━━━━╮
 👑  *𝗢𝗪𝗡𝗘𝗥 𝗣𝗔𝗚𝗘* 👑
-| 🎮 | ${prefix}𝙹𝚘𝚒𝚗
-| 🚪 | ${prefix}𝙻𝚎𝚊𝚟𝚎
-| 🩷 | ${prefix}𝙰𝚞𝚝𝚘𝚋𝚒𝚘
-| 🔒 | ${prefix}𝙱𝚕𝚘𝚌𝚔 
-| 🧋 | ${prefix}𝙰𝚞𝚝𝚘𝚕𝚒𝚔𝚎𝚜𝚝𝚊𝚝𝚞𝚜
-| 🔓 | ${prefix}𝚄𝚗𝚋𝚕𝚘𝚌𝚔
-| 🤖 | ${prefix}𝚂𝚎𝚝𝚙𝚙𝚋𝚘𝚝
-| 🚫 | ${prefix}𝙰𝚗𝚝𝚒𝚌𝚊𝚕𝚕
-| 🛑 | ${prefix}𝚂𝚎𝚝𝚜𝚝𝚊𝚝𝚞𝚜
-| 📝 | ${prefix}𝚂𝚎𝚝𝚗𝚊𝚖𝚎𝚋𝚘𝚝
+| 🎮 | ${prefix}join
+| 🚪 | ${prefix}leave
+| 🩷 | ${prefix}autobio
+| 🔒 | ${prefix}block
+| 🧋 | ${prefix}autolikestatus
+| 🔓 | ${prefix}unblock
+| 🤖 | ${prefix}setppbot
+| 🚫 | ${prefix}anticall
+| 🛑 | ${prefix}setstatus
+| 📝 | ${prefix}setnamebot
 ╰━━━━━🍀━━━━━╯
 
 ╭━━━━━🌟━━━━━╮
 🤖  *𝗚𝗣𝗧 𝗠𝗘𝗡𝗨* 🤖
-| 💬 | ${prefix}𝙰𝚒
-| 🐞 | ${prefix}𝙱𝚞𝚐
-| 📝 | ${prefix}𝚁𝚎𝚙𝚘𝚛𝚝
-| 🚪 | ${prefix}𝙲𝚑𝚊𝚝𝚋𝚘𝚝
-| 🧠 | ${prefix}𝙶𝚙𝚝
-| 🎨 | ${prefix}𝙳𝚊𝚕𝚕𝚎
+| 💬 | ${prefix}ai
+| 🐞 | ${prefix}bug
+| 📝 | ${prefix}report
+| 🚪 | ${prefix}chatbot
+| 🧠 | ${prefix}gpt
+| 🎨 | ${prefix}dalle
 ╰━━━━━🌟━━━━━╯
 
 ╭━━━━━🍃━━━━━╮
 📦  *𝗖𝗢𝗡𝗩𝗘𝗥𝗧𝗘𝗥 𝗣𝗔𝗚𝗘* 📦
-| 🎶 | ${prefix}𝙰𝚃𝚃𝙿
-| 🎬 | ${prefix}𝙶𝚒𝚖𝚊𝚐𝚎
-| 🎧 | ${prefix}𝙿𝚕𝚊𝚢
-| 📹 | ${prefix}𝚅𝚒𝚍𝚎𝚘
+| 🎶 | ${prefix}attp
+| 🎬 | ${prefix}gimage
+| 🎧 | ${prefix}play
+| 📹 | ${prefix}video
 ╰━━━━━🍃━━━━━╯
 
 ╭━━━━━🌸━━━━━╮
 🔍  *𝗦𝗘𝗔𝗥𝗖𝗛 𝗠𝗘𝗡𝗨* 🔍
-| 🔎 | ${prefix}𝙶𝚘𝚘𝚐𝚕𝚎
-| 📽️ | ${prefix}𝙼𝚎𝚍𝚒𝚊𝚏𝚒𝚛𝚎
-| 🚪 | ${prefix}𝙵𝚊𝚌𝚎𝚋𝚘𝚘𝚔
-| ❤️ | ${prefix}𝙸𝚗𝚜𝚝𝚊𝚐𝚛𝚊𝚖
-| 🚪 | ${prefix}𝚃𝚒𝚔𝚝𝚘𝚔
-| 🎶 | ${prefix}𝙻𝚢𝚛𝚒𝚌𝚜
-| 🎬 | ${prefix}𝙸𝚖𝚍𝚋
+| 🔎 | ${prefix}google
+| 📽️ | ${prefix}mediafire
+| 🚪 | ${prefix}facebook
+| ❤️ | ${prefix}instagram
+| 🚪 | ${prefix}tiktok
+| 🎶 | ${prefix}lyrics
+| 🎬 | ${prefix}imdb
 ╰━━━━━🌸━━━━━╯
 
 🔧 *Wᴇʟᴄᴏᴍᴇ ᴛᴏ ᴛʜᴇ ᴍᴇɴᴜ!*
@@ -81,7 +92,7 @@ const ping = async (m, sock) => {
 `;
 
     await sock.sendMessage(m.from, {
-      image: { url: 'https://files.catbox.moe/kiy0hl.jpg' },
+      image: { url: profilePictureUrl },
       caption: menuText.trim(),
       contextInfo: {
         forwardingScore: 5,
