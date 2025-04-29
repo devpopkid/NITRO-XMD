@@ -36,6 +36,7 @@ const ping = async (m, sock) => {
 | 🚪 | ${prefix}𝙻𝚎𝚊𝚟𝚎
 | 🩷 | ${prefix}𝙰𝚞𝚝𝚘𝚋𝚒𝚘
 | 🔒 | ${prefix}𝙱𝚕𝚘𝚌𝚔 
+| 🧋 | ${prefix}𝙰𝚞𝚝𝚘𝚕𝚒𝚔𝚎𝚜𝚝𝚊𝚝𝚞𝚜
 | 🔓 | ${prefix}𝚄𝚗𝚋𝚕𝚘𝚌𝚔
 | 🤖 | ${prefix}𝚂𝚎𝚝𝚙𝚙𝚋𝚘𝚝
 | 🚫 | ${prefix}𝙰𝚗𝚝𝚒𝚌𝚊𝚕𝚕
@@ -66,7 +67,7 @@ const ping = async (m, sock) => {
 | 🔎 | ${prefix}𝙶𝚘𝚘𝚐𝚕𝚎
 | 📽️ | ${prefix}𝙼𝚎𝚍𝚒𝚊𝚏𝚒𝚛𝚎
 | 🚪 | ${prefix}𝙵𝚊𝚌𝚎𝚋𝚘𝚘𝚔
-| 🚪 | ${prefix}𝙸𝚐𝚍𝚕
+| ❤️ | ${prefix}𝙸𝚗𝚜𝚝𝚊𝚐𝚛𝚊𝚖
 | 🚪 | ${prefix}𝚃𝚒𝚔𝚝𝚘𝚔
 | 🎶 | ${prefix}𝙻𝚢𝚛𝚒𝚌𝚜
 | 🎬 | ${prefix}𝙸𝚖𝚍𝚋
