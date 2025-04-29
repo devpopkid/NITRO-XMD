@@ -4,8 +4,8 @@ import config from '../../config.cjs';
 
 const geminiResponse = async (m, Matrix) => {
   const prefix = config.PREFIX;
-const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
-const text = m.body.slice(prefix.length + cmd.length).trim();
+  const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
+  const text = m.body.slice(prefix.length + cmd.length).trim();
 
   const apiKey = config.GEMINI_KEY;
   const genAI = new GoogleGenerativeAI(apiKey);
@@ -15,7 +15,7 @@ const text = m.body.slice(prefix.length + cmd.length).trim();
     if (!m.quoted || m.quoted.mtype !== 'imageMessage') {
       return m.reply(`*Send/Reply with an Image ${prefix + cmd}*`);
     }
-    
+
     m.reply("Please wait...");
 
     try {
@@ -34,7 +34,19 @@ const text = m.body.slice(prefix.length + cmd.length).trim();
       const response = result.response;
 
       const textResponse = await response.text();
-      m.reply(`${textResponse}`);
+      console.log('Gemini Response:', textResponse); // Log the raw response
+
+      if (!textResponse.trim()) {
+        return m.reply("The Gemini model didn't provide a meaningful text response for this image.");
+      }
+
+      try {
+        await m.reply(`${textResponse}`);
+        console.log('Reply sent successfully.');
+      } catch (replyError) {
+        console.error('Error sending reply:', replyError);
+        await m.React("❌"); // Keep the reaction for errors
+      }
     } catch (error) {
       console.error('Error in Gemini Pro Vision:', error);
       m.reply(`An error occurred: ${error.message}`);
