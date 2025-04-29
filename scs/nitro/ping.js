@@ -5,35 +5,45 @@ const ping = async (m, sock) => {
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
   if (cmd === "ping") {
-    const start = new Date().getTime();
-    await m.React('⏳'); // Sending a "waiting" emoji
+    const start = performance.now();
+    await m.React('⏳');
 
-    // Simulate typing (optional, for visual feedback)
     await sock.sendPresenceUpdate('composing', m.from);
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Adjust time as needed
+    await new Promise(resolve => setTimeout(resolve, 1500));
     await sock.sendPresenceUpdate('paused', m.from);
 
-    const end = new Date().getTime();
-    const responseTime = (end - start); // in milliseconds
+    const end = performance.now();
+    const responseTime = Math.round(end - start);
 
-    const circles = ['○', '◔', '◕'];
-    let animation = '';
-    for (let i = 0; i < 10; i++) {
-      animation += circles[i % circles.length];
+    const text = `
+╭━━━〔 *PONG!* 〕━━━╮
+┃ ⚡ *Status:* Online
+┃ ⏱️ *Response:* ${responseTime} ms
+┃ ${getFancyMessage()}
+╰━━━━━━━━━━━━━━╯
+    `.trim();
+
+    let profilePic;
+    try {
+      profilePic = await sock.profilePictureUrl(m.sender, 'image');
+    } catch (err) {
+      profilePic = 'https://i.ibb.co/7yzjwvJ/default.jpg'; // Fallback image if profile pic isn't available
     }
 
-    const text = `\`\`\`\n${animation} Pinging Server...\n\`\`\`\n*Response Time:* \`${responseTime} ms\`\n${getFancyMessage()}`;
-    sock.sendMessage(m.from, { text }, { quoted: m });
+    await sock.sendMessage(m.from, {
+      image: { url: profilePic },
+      caption: text
+    }, { quoted: m });
   }
 }
 
 function getFancyMessage() {
   const messages = [
-    "⚡️ Zoom! That was fast!",
-    "💨 Like a ninja!",
-    "🚀 Blazing speed!",
-    "✨ Almost instantaneous!",
-    "🌐 Connected in a blink!",
+    "⚡ Zooming through the wires!",
+    "💨 Too fast to catch!",
+    "🚀 Full throttle response!",
+    "✨ Lightning mode activated!",
+    "🌐 Instant like magic!",
   ];
   return messages[Math.floor(Math.random() * messages.length)];
 }
