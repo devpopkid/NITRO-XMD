@@ -34,6 +34,7 @@ const ping = async (m, sock) => {
 👑  *𝗢𝗪𝗡𝗘𝗥 𝗣𝗔𝗚𝗘* 👑
 | 🎮 | ${prefix}𝙹𝚘𝚒𝚗
 | 🚪 | ${prefix}𝙻𝚎𝚊𝚟𝚎
+| 🩷 | ${prefix}𝙰𝚞𝚝𝚘𝚋𝚒𝚘
 | 🔒 | ${prefix}𝙱𝚕𝚘𝚌𝚔 
 | 🔓 | ${prefix}𝚄𝚗𝚋𝚕𝚘𝚌𝚔
 | 🤖 | ${prefix}𝚂𝚎𝚝𝚙𝚙𝚋𝚘𝚝
@@ -47,6 +48,7 @@ const ping = async (m, sock) => {
 | 💬 | ${prefix}𝙰𝚒
 | 🐞 | ${prefix}𝙱𝚞𝚐
 | 📝 | ${prefix}𝚁𝚎𝚙𝚘𝚛𝚝
+| 🚪 | ${prefix}𝙲𝚑𝚊𝚝𝚋𝚘𝚝
 | 🧠 | ${prefix}𝙶𝚙𝚝
 | 🎨 | ${prefix}𝙳𝚊𝚕𝚕𝚎
 ╰━━━━━🌟━━━━━╯
@@ -55,7 +57,7 @@ const ping = async (m, sock) => {
 📦  *𝗖𝗢𝗡𝗩𝗘𝗥𝗧𝗘𝗥 𝗣𝗔𝗚𝗘* 📦
 | 🎶 | ${prefix}𝙰𝚃𝚃𝙿
 | 🎬 | ${prefix}𝙶𝚒𝚖𝚊𝚐𝚎
-| 🎧 | ${prefix}𝙼𝙿3
+| 🎧 | ${prefix}𝙿𝚕𝚊𝚢
 | 📹 | ${prefix}𝚅𝚒𝚍𝚎𝚘
 ╰━━━━━🍃━━━━━╯
 
@@ -63,6 +65,9 @@ const ping = async (m, sock) => {
 🔍  *𝗦𝗘𝗔𝗥𝗖𝗛 𝗠𝗘𝗡𝗨* 🔍
 | 🔎 | ${prefix}𝙶𝚘𝚘𝚐𝚕𝚎
 | 📽️ | ${prefix}𝙼𝚎𝚍𝚒𝚊𝚏𝚒𝚛𝚎
+| 🚪 | ${prefix}𝙵𝚊𝚌𝚎𝚋𝚘𝚘𝚔
+| 🚪 | ${prefix}𝙸𝚐𝚍𝚕
+| 🚪 | ${prefix}𝚃𝚒𝚔𝚝𝚘𝚔
 | 🎶 | ${prefix}𝙻𝚢𝚛𝚒𝚌𝚜
 | 🎬 | ${prefix}𝙸𝚖𝚍𝚋
 ╰━━━━━🌸━━━━━╯
