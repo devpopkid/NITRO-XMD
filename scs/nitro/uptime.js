@@ -12,27 +12,25 @@ const alive = async (m, Matrix) => {
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).toLowerCase() : '';
 
   if (['alive', 'uptime', 'runtime'].includes(cmd)) {
-    const uptimeMessage = `*🔹 POPKID MD IS ACTIVE 🔹*
+    const uptimeMessage = `╭───「 *POPKID MD STATUS* 」───╮
 
-╭───────═━┈┈━═──━┈⊷
-┇ *🗓️ ${days} Day(s)* 
-┇ *⏰ ${hours} Hour(s)*
-┇ *🕒 ${minutes} Minute(s)*
-┇ *⏳ ${seconds} Second(s)*
-╰───────═━┈┈━═──━┈⊷
+┃ 🟢 *STATUS:* Online
+┃ ⏱️ *Uptime:* ${days}d ${hours}h ${minutes}m ${seconds}s
+┃ 🧠 *Framework:* Baileys API
+┃ ⚙️ *Performance:* Stable
+┃ 👤 *User:* @${m.sender.split('@')[0]}
 
-💡 *Your bot is up and running!*
+╰────────────────────────────╯
 
-*⚡ Fast, reliable, and always on!*
-    
-_Stay tuned for more updates!_ 🔥
+💡 *System fully operational*  
+✨ _Fast, light & powerful_
 
-`;
+🔸 *POPKID-XTECH* 🔸`;
 
     const buttons = [
       {
-        "name": "quick_reply",
-        "buttonParamsJson": JSON.stringify({
+        name: "quick_reply",
+        buttonParamsJson: JSON.stringify({
           display_text: "Ping ⏳",
           id: `${prefix}ping`
         })
