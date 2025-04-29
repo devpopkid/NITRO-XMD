@@ -1,0 +1,14 @@
+const botNameStyled = stylishText('*𝗣𝗢𝗣𝗞𝗜𝗗 𝗠𝗗 𝗕𝗢𝗧*');
+const versionStyled = stylishText('*Version*:');
+const developedByStyled = stylishText('*DEVELOPED BY POPKID🪆*');
+const speedStyled = stylishText('*ULTRA SPEED ⚡ ⚡*');
+const commandsMenuStyled = stylishText('_✨ *𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 𝗠𝗘𝗡𝗨* ✨_');
+const exploreCommandsStyled = stylishText('*Explore the commands below to harness the bot\'s full power!*');
+const systemMenuStyled = stylishText('🌍  *𝗦𝗬𝗦𝗧𝗘𝗠 𝗠𝗘𝗡𝗨* 🌍');
+const ownerPageStyled = stylishText('👑  *𝗢𝗪𝗡𝗘𝗥 𝗣𝗔𝗚𝗘* 👑');
+const gptMenuStyled = stylishText('🤖  *𝗚𝗣𝗧 𝗠𝗘𝗡𝗨* 🤖');
+const converterPageStyled = stylishText('📦  *𝗖𝗢𝗡𝗩𝗘𝗥𝗧𝗘𝗥 𝗣𝗔𝗚𝗘* 📦');
+const searchMenuStyled = stylishText('🔍  *𝗦𝗘𝗔𝗥𝗖𝗛 𝗠𝗘𝗡𝗨* 🔍');
+const welcomeStyled = stylishText('*Wᴇʟᴄᴏᴍᴇ ᴛᴏ ᴛʜᴇ ᴍᴇɴᴜ!*');
+const waitStyled = stylishText('*ᴡᴀɪᴛ ғᴏʀ ᴍᴏʀᴇ ᴄᴏᴍᴍᴀɴᴅs...*');
+const devStyled = stylishText('📢 *ᴅᴇᴠ ᴘᴏᴘᴋɪᴅ*');
