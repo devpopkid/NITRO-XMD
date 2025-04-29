@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const config = {
   // Session & prefix
-  SESSION_ID: process.env.SESSION_ID || "POPKID$9NWAm3k5",
+  SESSION_ID: process.env.SESSION_ID || "POPKID$J1ewMF6F",
   PREFIX: process.env.PREFIX || '.',
 
   // Branding & menu captions
