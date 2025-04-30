@@ -1,31 +1,29 @@
 import config from '../../config.cjs';
-import { downloadMediaMessage } from '@whiskeysockets/baileys';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 
-const setProfilePicture = async (m, sock) => {
+const profile = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
+  const text = m.body.slice(prefix.length + cmd.length).trim();
 
-  if (cmd === 'set' && m.body.toLowerCase().includes('pp')) {
-    if (!m.quoted?.image) {
-      return m.reply("💖 *Pretty please, reply to an image with the command!* 🌸");
+  if (cmd === "getpp") {
+    if (!text) {
+      return m.reply(`Please provide a WhatsApp number to fetch the profile picture.\nExample: ${prefix}profile 2547xxxxxxxx`);
     }
+
+    const jid = text.startsWith('254') ? `${text}@s.whatsapp.net` : `${text}@s.whatsapp.net`; // Assuming Kenyan numbers start with 254, adjust as needed
 
     try {
-      await m.reply('✨ *Pinkifying your profile...* 🎀');
-      const media = await downloadMediaMessage(m.quoted, 'buffer');
-      const tempFilePath = path.join(process.cwd(), 'temp_pp.jpg');
-      await fs.writeFile(tempFilePath, media);
-
-      await sock.updateProfilePicture(m.sender, { url: tempFilePath });
-      await fs.unlink(tempFilePath);
-      await m.reply('🌷 *Profile picture updated with a touch of pink magic!* 💕');
+      const ppUrl = await sock.profilePictureUrl(jid, 'image');
+      if (ppUrl) {
+        await sock.sendMessage(m.from, { image: { url: ppUrl }, caption: `Profile picture of ${text}` }, { quoted: m });
+      } else {
+        await m.reply(`Could not fetch the profile picture for ${text} or the user has no profile picture.`);
+      }
     } catch (error) {
-      console.error('Error updating profile picture:', error);
-      await m.reply('💔 *Oh dear, something went wrong while setting the profile picture.* 😔');
+      console.error("Error fetching profile picture:", error);
+      await m.reply(`An error occurred while trying to fetch the profile picture for ${text}. Please ensure the number is valid.`);
     }
   }
-};
+}
 
-export default setProfilePicture;
+export default profile;
