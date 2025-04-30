@@ -1,43 +1,41 @@
 import config from '../../config.cjs';
-import { downloadMediaMessage } from '@whiskeysockets/baileys';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 
-const autoUpdateProfilePicture = async (m, sock) => {
+const setppgroup = async (m, sock) => {
   const prefix = config.PREFIX;
   const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
 
-  if (cmd === 'setpp' && m.hasQuotedMsg && m.quotedMsg.image) {
+  if (cmd === "setgpp") {
+    if (!m.key.remoteJid.endsWith('@g.us')) {
+      return sock.sendMessage(m.from, { text: "❌ *This command can only be used in groups.*" }, { quoted: m });
+    }
+
+    if (!m.quoted || !m.quoted.imageMessage) {
+      return sock.sendMessage(m.from, { text: "❌ *Please reply to an image to set as group profile picture.*" }, { quoted: m });
+    }
+
+    await m.React('⏳');
+
     try {
-      await m.react('🖼️'); // React to show processing
+      const groupMetadata = await sock.groupMetadata(m.from);
+      const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
+      const botAdmin = groupMetadata.participants.find(p => p.id === botNumber)?.admin;
 
-      const buffer = await downloadMediaMessage(
-        m.quotedMsg,
-        'image',
-        {},
-        { reupload: false } // Set to false to prevent re-uploading if already cached
-      );
-
-      if (buffer) {
-        // Save the downloaded image temporarily
-        const tempImagePath = path.join(process.cwd(), 'temp_profile_image.jpg');
-        await fs.writeFile(tempImagePath, buffer);
-
-        // Update the profile picture
-        await sock.updateProfilePicture(m.from, { url: tempImagePath });
-
-        // Clean up the temporary file
-        await fs.unlink(tempImagePath);
-
-        await m.reply('✅ Profile picture updated!');
-      } else {
-        await m.reply('❌ Failed to download the image.');
+      if (!botAdmin) {
+        await m.React('❌');
+        return sock.sendMessage(m.from, { text: "❌ *I need to be an admin to change the group profile picture.*" }, { quoted: m });
       }
-    } catch (error) {
-      console.error('Error updating profile picture:', error);
-      await m.reply('❌ An error occurred while updating the profile picture.');
+
+      const media = await sock.downloadMediaMessage(m.quoted);
+      await sock.updateProfilePicture(m.from, media);
+      await m.React('✅');
+      await sock.sendMessage(m.from, { text: "*✅ Group profile picture updated.*" }, { quoted: m });
+
+    } catch (err) {
+      console.error("Group profile pic update error:", err);
+      await m.React('❌');
+      await sock.sendMessage(m.from, { text: "*❌ Failed to update group profile picture.*" }, { quoted: m });
     }
   }
 };
 
-export default autoUpdateProfilePicture;
+export default setppgroup;
