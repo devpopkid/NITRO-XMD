@@ -13,7 +13,7 @@ const profile = async (m, sock) => {
     } else if (m.quoted && m.quoted.sender) {
       jid = m.quoted.sender;
     } else {
-      return m.reply(`Please provide a WhatsApp number or reply to someone's message to fetch their profile picture.\nExample: ${prefix}getpp 2547xxxxxxxx`);
+      return m.reply(`ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴡʜᴀᴛsᴀᴘᴘ ɴᴜᴍʙᴇʀ.\nExample: ${prefix}getpp 2547xxxxxxxx`);
     }
 
     try {
