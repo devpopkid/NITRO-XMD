@@ -90,7 +90,7 @@ async function updateBio(Matrix) {
         const now = moment().tz('Africa/Nairobi');
         const time = now.format('HH:mm:ss');
         const randomQuote = lifeQuotes[Math.floor(Math.random() * lifeQuotes.length)];
-        const bio = `POPKID XMD IS ACTIVE AND ${time} | ${randomQuote}`;
+        const bio = `🧋ᴘᴏᴘᴋɪᴅ xᴍᴅ ɪs ᴀᴄᴛɪᴠᴇ🧋ᴀᴛ ${time} | ${randomQuote}`;
         await Matrix.updateProfileStatus(bio);
         console.log(chalk.yellow(`ℹ️ Bio updated to: "${bio}"`));
     } catch (error) {
