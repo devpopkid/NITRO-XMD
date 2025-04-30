@@ -1,83 +1,45 @@
-import pkg, { prepareWAMessageMedia } from '@whiskeysockets/baileys';
-const { generateWAMessageFromContent, proto } = pkg;
+import pkg from '@whiskeysockets/baileys';
+const { proto } = pkg;
 
-const alive = async (m, Matrix) => {
+const alive = async (m, sock) => {
   const uptimeSeconds = process.uptime();
   const days = Math.floor(uptimeSeconds / (24 * 3600));
   const hours = Math.floor((uptimeSeconds % (24 * 3600)) / 3600);
   const minutes = Math.floor((uptimeSeconds % 3600) / 60);
   const seconds = Math.floor(uptimeSeconds % 60);
 
-  const prefix = /^[\\/!#.]/gi.test(m.body) ? m.body.match(/^[\\/!#.]/gi)[0] : '/';
-  const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).toLowerCase() : '';
+  const prefixRegex = /^[\\/!#.]/gi;
+  const prefixMatch = m.body.match(prefixRegex);
+  const prefix = prefixMatch ? prefixMatch[0] : '/';
+  const bodyWithoutPrefix = m.body.slice(prefix.length).trim();
+  const cmd = bodyWithoutPrefix.toLowerCase();
 
   if (['alive', 'uptime', 'runtime'].includes(cmd)) {
-    const uptimeMessage = `╭───「 *POPKID MD STATUS* 」───╮
+    const uptimeMessage = `
+🟢 *POPKID MD is Online!*
 
-┃ 🟢 *STATUS:* Online
-┃ ⏱️ *Uptime:* ${days}d ${hours}h ${minutes}m ${seconds}s
-┃ 🧠 *Framework:* Baileys API
-┃ ⚙️ *Performance:* Stable
-┃ 👤 *User:* @${m.sender.split('@')[0]}
+⏱️ *Uptime:* ${days}d ${hours}h ${minutes}m ${seconds}s
+⚙️ *Framework:* Baileys API
+👤 *User:* @${m.sender.split('@')[0]}
+`;
 
-╰────────────────────────────╯
-
-💡 *System fully operational*  
-✨ _Fast, light & powerful_
-
-🔸 *POPKID-XTECH* 🔸`;
-
-    const buttons = [
-      {
-        name: "quick_reply",
-        buttonParamsJson: JSON.stringify({
-          display_text: "Ping ⏳",
-          id: `${prefix}ping`
-        })
-      }
+    const templateButtons = [
+      { index: 1, quickReplyButton: { displayText: '⚡ Ping', id: `${prefix}ping` } },
     ];
 
-    const msg = generateWAMessageFromContent(m.from, {
-      viewOnceMessage: {
-        message: {
-          messageContextInfo: {
-            deviceListMetadata: {},
-            deviceListMetadataVersion: 2
-          },
-          interactiveMessage: proto.Message.InteractiveMessage.create({
-            body: proto.Message.InteractiveMessage.Body.create({
-              text: uptimeMessage
-            }),
-            footer: proto.Message.InteractiveMessage.Footer.create({
-              text: "© popkid | Always Active 🔥"
-            }),
-            header: proto.Message.InteractiveMessage.Header.create({
-              title: "🚀 POPKID MD - Uptime Status",
-              gifPlayback: true,
-              subtitle: "Bot Status",
-              hasMediaAttachment: false 
-            }),
-            nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
-              buttons
-            }),
-            contextInfo: {
-              mentionedJid: [m.sender], 
-              forwardingScore: 999,
-              isForwarded: true,
-              forwardedNewsletterMessageInfo: {
-                newsletterJid: '254111385747',
-                newsletterName: "POPKID MD",
-                serverMessageId: 143
-              }
-            }
-          }),
-        },
-      },
-    }, {});
+    const message = {
+      text: uptimeMessage,
+      footer: '🔥 POPKID',
+      templateButtons: templateButtons,
+      mentions: [m.sender]
+    };
 
-    await Matrix.relayMessage(msg.key.remoteJid, msg.message, {
-      messageId: msg.key.id
-    });
+    try {
+      await sock.sendMessage(m.from, message, { quoted: m });
+    } catch (error) {
+      console.error("Error sending alive message:", error);
+      await sock.sendMessage(m.from, { text: "⚠️ Failed to send alive message." }, { quoted: m });
+    }
   }
 };
 
