@@ -6,24 +6,28 @@ const profile = async (m, sock) => {
   const text = m.body.slice(prefix.length + cmd.length).trim();
 
   if (cmd === "getpp") {
-    if (!text) {
-      return m.reply(`Please provide a WhatsApp number to fetch the profile picture.\nExample: ${prefix}profile 2547xxxxxxxx`);
-    }
+    let jid;
 
-    const jid = text.startsWith('254') ? `${text}@s.whatsapp.net` : `${text}@s.whatsapp.net`; // Assuming Kenyan numbers start with 254, adjust as needed
+    if (text) {
+      jid = `${text}@s.whatsapp.net`;
+    } else if (m.quoted && m.quoted.sender) {
+      jid = m.quoted.sender;
+    } else {
+      return m.reply(`Please provide a WhatsApp number or reply to someone's message to fetch their profile picture.\nExample: ${prefix}getpp 2547xxxxxxxx`);
+    }
 
     try {
       const ppUrl = await sock.profilePictureUrl(jid, 'image');
       if (ppUrl) {
-        await sock.sendMessage(m.from, { image: { url: ppUrl }, caption: `Profile picture of ${text}` }, { quoted: m });
+        await sock.sendMessage(m.from, { image: { url: ppUrl }, caption: `Profile picture of ${jid.split('@')[0]}` }, { quoted: m });
       } else {
-        await m.reply(`Could not fetch the profile picture for ${text} or the user has no profile picture.`);
+        await m.reply(`Could not fetch the profile picture for ${jid.split('@')[0]} or the user has no profile picture.`);
       }
     } catch (error) {
       console.error("Error fetching profile picture:", error);
-      await m.reply(`An error occurred while trying to fetch the profile picture for ${text}. Please ensure the number is valid.`);
+      await m.reply(`An error occurred while trying to fetch the profile picture for ${jid.split('@')[0]}. Please ensure the number is valid.`);
     }
   }
-}
+};
 
 export default profile;
