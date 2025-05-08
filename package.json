@@ -2,10 +2,10 @@
   "name": "NITRO-XMD",
   "version": "10.8.1",
   "description": "NITRO XMD The Fastest Bot",
-  "main": "body.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "pm2 start body.js --deep-monitoring --attach --name NITRO-XMD",
+    "start": "pm2 start index.js --deep-monitoring --attach --name NITRO-XMD",
     "stop": "pm2 stop NITRO-XMD",
     "restart": "pm2 restart NITRO-XMD"
   },
