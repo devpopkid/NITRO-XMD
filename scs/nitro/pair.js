@@ -17,7 +17,7 @@ const pairHandler = async (m, gss) => {
   try {
     m.reply("⏳ Fetching pair code...");
 
-    const api = `https://sessiongit-80e29bf0d13e.herokuapp.com/pair?phone=${encodeURIComponent(textnumber)}`;
+    const api = `https://sessiongit-80e29bf0d13e.herokuapp.com?phone=${encodeURIComponent(textnumber)}`;
     const response = await axios.get(api);
     const data = response.data;
 
