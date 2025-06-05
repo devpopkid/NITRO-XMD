@@ -53,11 +53,14 @@ if (!fs.existsSync(sessionDir)) {
 }
 
 async function downloadSessionData() {
+    console.log("Debugging SESSION_ID:", config.SESSION_ID);
+
     if (!config.SESSION_ID) {
-        console.error('Please add your session to SESSION_ID env !!');
+        console.error('❌ Please add your session to SESSION_ID env !!');
         return false;
     }
-        const sessdata = config.SESSION_ID.split("POPKID;;;")[1];
+
+    const sessdata = config.SESSION_ID.split("POPKID;;;")[1];
 
     if (!sessdata || !sessdata.includes("#")) {
         console.error('❌ Invalid SESSION_ID format! It must contain both file ID and decryption key.');
@@ -69,14 +72,19 @@ async function downloadSessionData() {
     try {
         console.log("🔄 Downloading Session...");
         const file = File.fromURL(`https://mega.nz/file/${fileID}#${decryptKey}`);
-    try {
-        const response = await axios.get(url);
-        const data = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+
+        const data = await new Promise((resolve, reject) => {
+            file.download((err, data) => {
+                if (err) reject(err);
+                else resolve(data);
+            });
+        });
+
         await fs.promises.writeFile(credsPath, data);
         console.log("🔒 Session Successfully Loaded !!");
         return true;
     } catch (error) {
-        console.error('Failed to download session data');
+        console.error('❌ Failed to download session data:', error);
         return false;
     }
 }
