@@ -21,6 +21,7 @@ import moment from 'moment-timezone';
 import axios from 'axios';
 import config from './config.cjs';
 import pkg from './lib/autoreact.cjs';
+import { File } from 'megajs'; // ✅ Required for MEGA session download
 
 import { fileURLToPath } from 'url';
 
@@ -53,7 +54,7 @@ if (!fs.existsSync(sessionDir)) {
 }
 
 async function downloadSessionData() {
-    console.log("Debugging SESSION_ID:", config.SESSION_ID);
+    console.log("🛠️ Debugging SESSION_ID:", config.SESSION_ID);
 
     if (!config.SESSION_ID) {
         console.error('❌ Please add your session to SESSION_ID env !!');
@@ -150,13 +151,12 @@ async function start() {
         Matrix.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect } = update;
             if (connection === 'close') {
-                if (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) {
+                if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
                     start();
                 }
             } else if (connection === 'open') {
                 if (initialConnection) {
                     console.log(chalk.green("✔️  ᴘᴏᴘᴋɪᴅ ᴍᴅ ɪs ɴᴏᴡ ᴏɴʟɪɴᴇ ᴀɴᴅ ᴘᴏᴡᴇʀᴇᴅ ᴜᴘ"));
-
                     await updateBio(Matrix);
 
                     const image = { url: "https://files.catbox.moe/nk71o3.jpg" };
@@ -200,9 +200,7 @@ async function start() {
 
                     if (!global.isLiveBioRunning) {
                         global.isLiveBioRunning = true;
-                        setInterval(async () => {
-                            await updateLiveBio(Matrix);
-                        }, 10000);
+                        setInterval(() => updateLiveBio(Matrix), 10000);
                     }
 
                     initialConnection = false;
@@ -210,9 +208,7 @@ async function start() {
                     console.log(chalk.blue("♻️ Connection reestablished after restart."));
                     if (!global.isLiveBioRunning) {
                         global.isLiveBioRunning = true;
-                        setInterval(async () => {
-                            await updateLiveBio(Matrix);
-                        }, 10000);
+                        setInterval(() => updateLiveBio(Matrix), 10000);
                     }
                 }
             }
@@ -238,7 +234,7 @@ async function start() {
         Matrix.public = config.MODE === "public";
 
     } catch (error) {
-        console.error('Critical Error:', error);
+        console.error('❌ Critical Error:', error.stack || error);
         process.exit(1);
     }
 }
@@ -254,7 +250,7 @@ async function init() {
             console.log("🔒 Session downloaded, starting bot.");
             await start();
         } else {
-            console.log("No session found or downloaded, QR code will be printed for authentication.");
+            console.log("📸 No session found or downloaded, QR code will be printed for authentication.");
             useQR = true;
             await start();
         }
@@ -269,5 +265,5 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'mydata', 'index.html'));
 });
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`🌐 Server is running on port ${PORT}`);
 });
