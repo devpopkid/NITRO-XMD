@@ -1,4 +1,3 @@
-
 import { serialize, decodeJid } from '../../lib/Serializer.js';
 import path from 'path';
 import fs from 'fs/promises';
@@ -18,74 +17,73 @@ export const getGroupAdmins = (participants) => {
             admins.push(i.id);
         }
     }
-    return admins || [];
+    return admins;
 };
 
 const Handler = async (chatUpdate, sock, logger) => {
     try {
-        if (chatUpdate.type !== 'notify') return;
+        if (!chatUpdate || chatUpdate.type !== 'notify') return;
 
-        const m = serialize(JSON.parse(JSON.stringify(chatUpdate.messages[0])), sock, logger);
-        if (!m.message) return;
+        const rawMessage = chatUpdate.messages?.[0];
+        if (!rawMessage?.message) return;
 
-        const participants = m.isGroup ? await sock.groupMetadata(m.from).then(metadata => metadata.participants) : [];
+        const m = serialize(JSON.parse(JSON.stringify(rawMessage)), sock, logger);
+        if (!m?.body) return;
+
+        const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
+        const ownerNumber = config.OWNER_NUMBER + '@s.whatsapp.net';
+
+        const participants = m.isGroup
+            ? await sock.groupMetadata(m.from).then(md => md.participants)
+            : [];
+
         const groupAdmins = m.isGroup ? getGroupAdmins(participants) : [];
-        const botId = sock.user.id.split(':')[0] + '@s.whatsapp.net';
-        const isBotAdmins = m.isGroup ? groupAdmins.includes(botId) : false;
+        const isBotAdmins = m.isGroup ? groupAdmins.includes(botNumber) : false;
         const isAdmins = m.isGroup ? groupAdmins.includes(m.sender) : false;
 
-        const PREFIX = /^[\\/!#.]/;
-        const isCOMMAND = (body) => PREFIX.test(body);
-        const prefixMatch = isCOMMAND(m.body) ? m.body.match(PREFIX) : null;
-        const prefix = prefixMatch ? prefixMatch[0] : '/';
-        const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
-        const text = m.body.slice(prefix.length + cmd.length).trim();
+        const isCreator = [ownerNumber, botNumber].includes(m.sender);
+        const isPublic = sock.public ?? (config.MODE === 'public');
 
-        if (m.key && m.key.remoteJid === 'status@broadcast' && config.AUTO_STATUS_SEEN) {
+        // Ignore if not public and not creator
+        if (!isPublic && !isCreator) return;
+
+        // Auto status seen
+        if (m.key?.remoteJid === 'status@broadcast' && config.AUTO_STATUS_SEEN) {
             await sock.readMessages([m.key]);
         }
 
-        const botNumber = await sock.decodeJid(sock.user.id);
-        const ownerNumber = config.OWNER_NUMBER + '@s.whatsapp.net';
-        let isCreator = false;
+        // Prefix and command parsing
+        const PREFIX = /^[\\/!#.]/;
+        const isCmd = PREFIX.test(m.body);
+        const prefix = isCmd ? m.body[0] : '';
+        const cmd = isCmd ? m.body.slice(1).split(' ')[0].toLowerCase() : '';
+        const text = isCmd ? m.body.slice(1 + cmd.length).trim() : '';
 
-        if (m.isGroup) {
-            isCreator = m.sender === ownerNumber || m.sender === botNumber;
-        } else {
-            isCreator = m.sender === ownerNumber || m.sender === botNumber;
-        }
-
-        if (!sock.public) {
-            if (!isCreator) {
-                return;
-            }
-        }
-
+        // Handle Antilink
         await handleAntilink(m, sock, logger, isBotAdmins, isAdmins, isCreator);
 
-        const { isGroup, type, sender, from, body } = m;
-        console.log(m);
-
+        // Load plugins dynamically from "nitro" folder
         const pluginDir = path.join(__dirname, '..', 'nitro');
         const pluginFiles = await fs.readdir(pluginDir);
 
         for (const file of pluginFiles) {
-            if (file.endsWith('.js')) {
-                const pluginPath = path.join(pluginDir, file);
-               // console.log(`Attempting to load plugin: ${pluginPath}`);
+            if (!file.endsWith('.js')) continue;
 
-                try {
-                    const pluginModule = await import(`file://${pluginPath}`);
-                    const loadPlugins = pluginModule.default;
-                    await loadPlugins(m, sock);
-                   // console.log(`Successfully loaded plugin: ${pluginPath}`);
-                } catch (err) {
-                    console.error(`Failed to load plugin: ${pluginPath}`, err);
+            const pluginPath = path.join(pluginDir, file);
+            try {
+                const pluginModule = await import(`file://${pluginPath}`);
+                const execute = pluginModule.default;
+
+                if (typeof execute === 'function') {
+                    await execute(m, sock, { cmd, text, prefix, isCmd, isCreator, isAdmins, isBotAdmins });
                 }
+            } catch (err) {
+                console.error(`❌ Failed to load plugin: ${file}`, err);
             }
         }
+
     } catch (e) {
-        console.log(e);
+        console.error('❌ Handler Error:', e);
     }
 };
 
