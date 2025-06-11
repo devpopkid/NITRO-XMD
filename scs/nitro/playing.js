@@ -19,7 +19,7 @@ const play = async (m, sock) => {
     const cmd = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
     const text = m.body.slice(prefix.length + cmd.length).trim();
 
-    if (cmd === "play") {
+    if (cmd === "play2") {
         if (!text) {
             return m.reply("🎶 Tell me the song you're in the mood for! 🎶");
         }
