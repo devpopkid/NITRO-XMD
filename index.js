@@ -21,7 +21,7 @@ import moment from 'moment-timezone';
 import axios from 'axios';
 import config from './config.cjs';
 import pkg from './lib/autoreact.cjs';
-import { File } from 'megajs'; // ✅ Required for MEGA session download
+import { File } from 'megajs';
 
 import { fileURLToPath } from 'url';
 
@@ -54,7 +54,7 @@ if (!fs.existsSync(sessionDir)) {
 }
 
 async function downloadSessionData() {
-    console.log("🛠️ Debugging SESSION_ID:", config.SESSION_ID);
+    console.log("🛠️ Debugging SESSION_ID:", config.SESSION_ID ? '[REDACTED]' : 'None');
 
     if (!config.SESSION_ID) {
         console.error('❌ Please add your session to SESSION_ID env !!');
@@ -62,7 +62,6 @@ async function downloadSessionData() {
     }
 
     const sessdata = config.SESSION_ID.split("POPKID;;;")[1];
-
     if (!sessdata || !sessdata.includes("#")) {
         console.error('❌ Invalid SESSION_ID format! It must contain both file ID and decryption key.');
         return false;
@@ -151,16 +150,23 @@ async function start() {
         Matrix.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect } = update;
             if (connection === 'close') {
-                if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
+                const reason = lastDisconnect?.error?.output?.statusCode;
+                console.log(chalk.red(`❌ Disconnected. Reason Code: ${reason}`));
+                if (reason !== DisconnectReason.loggedOut) {
                     start();
                 }
             } else if (connection === 'open') {
                 if (initialConnection) {
                     console.log(chalk.green("✔️  ᴘᴏᴘᴋɪᴅ ᴍᴅ ɪs ɴᴏᴡ ᴏɴʟɪɴᴇ ᴀɴᴅ ᴘᴏᴡᴇʀᴇᴅ ᴜᴘ"));
+
+                    await Matrix.newsletterFollow("120363290715861418@newsletter");
+                    console.log(chalk.blue("📬 Followed POPKID newsletter."));
+
                     await updateBio(Matrix);
 
-                    const image = { url: "https://files.catbox.moe/nk71o3.jpg" };
-                    const caption = `╭━━ *『 ᴘᴏᴘᴋɪᴅ xᴍᴅ ᴄᴏɴɴᴇᴄᴛᴇᴅ 』*
+                    await Matrix.sendMessage(Matrix.user.id, {
+                        image: { url: "https://files.catbox.moe/nk71o3.jpg" },
+                        caption: `╭━━ *『 ᴘᴏᴘᴋɪᴅ xᴍᴅ ᴄᴏɴɴᴇᴄᴛᴇᴅ 』*
 ┃
 ┃  |⚡| *ʙᴏᴛ ɴᴀᴍᴇ:* ᴘᴏᴘᴋɪᴅ xᴍᴅ
 ┃  |👑| *ᴏᴡɴᴇʀ:* ᴘᴏᴘᴋɪᴅ
@@ -174,11 +180,7 @@ async function start() {
 
 ╭──────────────────
 │ *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴘᴏᴘᴋɪᴅ*
-╰──────────────────`;
-
-                    await Matrix.sendMessage(Matrix.user.id, {
-                        image,
-                        caption,
+╰──────────────────`,
                         contextInfo: {
                             isForwarded: true,
                             forwardingScore: 999,
@@ -200,7 +202,7 @@ async function start() {
 
                     if (!global.isLiveBioRunning) {
                         global.isLiveBioRunning = true;
-                        setInterval(() => updateLiveBio(Matrix), 10000);
+                        setInterval(() => updateLiveBio(Matrix), 60000); // 60s safer interval
                     }
 
                     initialConnection = false;
@@ -208,14 +210,16 @@ async function start() {
                     console.log(chalk.blue("♻️ Connection reestablished after restart."));
                     if (!global.isLiveBioRunning) {
                         global.isLiveBioRunning = true;
-                        setInterval(() => updateLiveBio(Matrix), 10000);
+                        setInterval(() => updateLiveBio(Matrix), 60000);
                     }
                 }
             }
         });
 
         Matrix.ev.on('creds.update', saveCreds);
+
         Matrix.ev.on("messages.upsert", async chatUpdate => {
+            if (!chatUpdate.messages || !chatUpdate.messages.length) return;
             await Handler(chatUpdate, Matrix, logger);
             try {
                 const mek = chatUpdate.messages[0];
